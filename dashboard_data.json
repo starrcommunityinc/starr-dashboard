@@ -1,0 +1,98 @@
+{
+  "generatedAt": "2026-06-16T04:18:27.709Z",
+  "settings": {
+    "orgName": "STARR Community Services International, Inc.",
+    "fiscalYear": "2026",
+    "executiveDirector": "Katrina Adams",
+    "standardRate": 31.8,
+    "professionalRate": 95
+  },
+  "summary": {
+    "totalVolunteers": 3,
+    "totalHours": 13,
+    "totalVolValue": 1045.4,
+    "totalInKind": 3587.5,
+    "cashGrants": 5000,
+    "totalProgramValue": 9632.9,
+    "leverageRatio": 1.9,
+    "totalParticipants": 337,
+    "totalContacts": 87
+  },
+  "recentEvents": [
+    {
+      "id": "P003",
+      "name": "STEAM Community Day — June 6",
+      "date": "2025-06-05",
+      "area": "Community Events",
+      "location": "TBD — confirm with venue",
+      "partners": "Leidos, John Deere, Community Partners",
+      "youthServed": 150,
+      "adults": 60,
+      "volHours": 0,
+      "totalValue": 12500
+    },
+    {
+      "id": "P002",
+      "name": "Astronomy Night — Auburn Gresham Park",
+      "date": "2025-05-09",
+      "area": "Astronomy / STEM",
+      "location": "Auburn Gresham Park",
+      "partners": "U of Chicago Astronomy Dept",
+      "youthServed": 55,
+      "adults": 20,
+      "volHours": 0,
+      "totalValue": 467.5
+    },
+    {
+      "id": "P001",
+      "name": "FIRST Robotics — Kickoff Session",
+      "date": "2025-04-14",
+      "area": "FIRST Robotics",
+      "location": "Gary Community Center",
+      "partners": "Leidos, John Deere",
+      "youthServed": 40,
+      "adults": 12,
+      "volHours": 13,
+      "totalValue": 3546.4
+    }
+  ],
+  "topVolunteers": [
+    {
+      "name": "Sarah Chen",
+      "hours": 6,
+      "value": 570,
+      "type": "Corporate"
+    },
+    {
+      "name": "Dr. James Webb",
+      "hours": 4,
+      "value": 380,
+      "type": "Individual"
+    },
+    {
+      "name": "Antoine Hale",
+      "hours": 3,
+      "value": 95.4,
+      "type": "Individual"
+    }
+  ],
+  "demographics": {
+    "raceEthnicity": {
+      "Black / African American": 4,
+      "Asian / Pacific Islander": 1
+    },
+    "gender": {
+      "Female": 3,
+      "Male": 2
+    },
+    "ageRange": {
+      "35–44": 2,
+      "45–54": 2,
+      "25–34": 1
+    },
+    "bipocCount": 5,
+    "bipocPct": 100,
+    "demographicResponseRate": 5.7,
+    "note": "Aggregate only — no personally identifiable information"
+  }
+}
