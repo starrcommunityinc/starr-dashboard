@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-17T14:46:30.823Z",
+  "generatedAt": "2026-06-17T18:31:03.700Z",
   "settings": {
     "orgName": "STARR Community Services International, Inc.",
     "fiscalYear": "2026",
@@ -9,12 +9,12 @@
   },
   "summary": {
     "totalVolunteers": 18,
-    "totalHours": 76,
-    "totalVolValue": 3175.2,
-    "totalInKind": 0,
+    "totalHours": 72,
+    "totalVolValue": 2542.4,
+    "totalInKind": 2800,
     "cashGrants": 5000,
-    "totalProgramValue": 8175.2,
-    "leverageRatio": 1.6,
+    "totalProgramValue": 10342.4,
+    "leverageRatio": 2.1,
     "totalParticipants": 337,
     "totalContacts": 84
   },
@@ -28,8 +28,8 @@
       "partners": "Chicago Park District, Kids First Chicago, National University of Singapore, Irie Jerk Hut, Kindred Impact LLC, U of C - Dept of Astronomy and Astrophysics, Chicago Fund for Safe and Peaceful Communities, Spring Board Foundation",
       "youthServed": 150,
       "adults": 60,
-      "volHours": 76,
-      "totalValue": 2492.8
+      "volHours": 72,
+      "totalValue": 5161.6
     },
     {
       "id": "P002",
@@ -58,12 +58,6 @@
   ],
   "topVolunteers": [
     {
-      "name": "Arsenio Powers",
-      "hours": 8,
-      "value": 760,
-      "type": "Corporate"
-    },
-    {
       "name": "Aishwarya Balasubramanian",
       "hours": 4,
       "value": 127.2,
@@ -83,6 +77,12 @@
     },
     {
       "name": "Euiseong Kim",
+      "hours": 4,
+      "value": 127.2,
+      "type": "Individual"
+    },
+    {
+      "name": "Jerome Kok",
       "hours": 4,
       "value": 127.2,
       "type": "Individual"
