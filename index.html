@@ -5,340 +5,650 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>STARR — Volunteer Impact Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --navy:#1A2744;--navy2:#243355;--navy3:#2D3E66;
-  --gold:#B8860B;--gold2:#D4A017;--gold3:#F0BE40;--gold-l:#FFFBEC;--gold-ll:#FEF6D8;
-  --teal:#0F5C5B;--teal2:#1A7A78;--teal-l:#E6F6F5;
-  --green:#0F4A22;--green2:#1A6B3A;--green-l:#EAF8EE;
-  --paper:#FAF8F4;--paper2:#F3F0E8;--paper3:#EAE6DA;
-  --ink:#1A1A2E;--ink2:#3A3A5A;--ink3:#6A6A8A;--ink4:#9A9AB0;
-  --rule:#DDD8CC;--rule2:#C8C0B0;--white:#FEFEFE;
+  --navy:#1A2744;--navy2:#243355;--navy3:#1E3060;
+  --gold:#B8860B;--gold2:#D4A017;--gold3:#F0BE40;
+  --gold-l:#FFFBEC;--gold-ll:#FEF6D8;
+  --teal:#0A5C5B;--teal2:#1A7A78;--teal-l:#E2F5F4;
+  --green:#0A4020;--green2:#1A6B3A;--green-l:#E8F8EE;
+  --paper:#F8F6F1;--paper2:#F0EDE5;--paper3:#E6E1D6;
+  --ink:#18181E;--ink2:#38385A;--ink3:#666688;--ink4:#9898B0;
+  --rule:#D8D4CC;--white:#FEFEFE;
   --ff:'Source Sans 3',system-ui,sans-serif;
   --ffd:'Playfair Display',Georgia,serif;
   --ffm:'JetBrains Mono',monospace;
-  --max:920px;--r:10px;--r2:14px;
+  --max:940px;
 }
-body{background:var(--paper);color:var(--ink);font-family:var(--ff);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
-#loading{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px}
-.load-title{font-family:var(--ffd);font-size:28px;color:var(--navy)}
-.load-sub{font-family:var(--ffm);font-size:11px;color:var(--ink4);letter-spacing:1px}
-.load-dot{display:inline-block;animation:pulse 1.4s ease-in-out infinite}
-.load-dot:nth-child(2){animation-delay:.2s}.load-dot:nth-child(3){animation-delay:.4s}
-@keyframes pulse{0%,80%,100%{opacity:.3}40%{opacity:1}}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:var(--ff);font-size:14px;line-height:1.65;-webkit-font-smoothing:antialiased}
+
+/* ── Loading ── */
+#loading{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:var(--navy)}
+.ld-title{font-family:var(--ffd);font-size:24px;color:rgba(255,255,255,.8)}
+.ld-bar{width:200px;height:2px;background:rgba(255,255,255,.15);border-radius:1px;overflow:hidden}
+.ld-fill{height:100%;background:var(--gold3);border-radius:1px;animation:ldpulse 1.4s ease-in-out infinite}
+@keyframes ldpulse{0%{width:0;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0;margin-left:100%}}
 #app{display:none}
-.top-banner{background:var(--navy);color:rgba(255,255,255,.55);font-family:var(--ffm);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;padding:8px 0;text-align:center}
-.top-banner span{color:var(--gold3)}
-.hero{background:var(--navy);padding:40px 0 36px;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;top:0;right:0;width:400px;height:100%;background:linear-gradient(135deg,transparent 60%,rgba(212,160,23,.08));pointer-events:none}
-.hero-inner{max-width:var(--max);margin:0 auto;padding:0 32px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:20px}
-.hero-eyebrow{font-family:var(--ffm);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold3);opacity:.8;margin-bottom:8px}
-.hero-title{font-family:var(--ffd);font-size:32px;font-weight:700;color:#fff;line-height:1.15;margin-bottom:8px}
+
+/* ── Top status bar ── */
+.status-bar{background:var(--navy3);padding:7px 0;text-align:center;font-family:var(--ffm);font-size:10px;letter-spacing:.5px;color:rgba(255,255,255,.4)}
+.status-bar.live .status-dot{background:#4ADE80}
+.status-bar.sample .status-dot{background:var(--gold3)}
+.status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.status-bar a{color:var(--gold3);text-decoration:none}
+
+/* ── Hero ── */
+.hero{background:var(--navy);padding:44px 0 0;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-60px;right:-80px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(212,160,23,.07) 0%,transparent 70%);pointer-events:none}
+.hero-inner{max-width:var(--max);margin:0 auto;padding:0 32px}
+.hero-eyebrow{font-family:var(--ffm);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold3);opacity:.75;margin-bottom:8px}
+.hero-title{font-family:var(--ffd);font-size:34px;font-weight:700;color:#fff;line-height:1.15;margin-bottom:10px}
 .hero-title em{color:var(--gold3);font-style:normal}
-.hero-meta{font-size:12px;color:rgba(255,255,255,.5);font-family:var(--ffm);letter-spacing:.3px}
-.hero-meta strong{color:rgba(255,255,255,.8);font-weight:400}
-.next-event{background:rgba(212,160,23,.15);border:1px solid rgba(212,160,23,.35);border-radius:var(--r);padding:12px 18px;text-align:center}
-.ne-label{font-family:var(--ffm);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold3);opacity:.8;margin-bottom:4px}
-.ne-date{font-family:var(--ffd);font-size:18px;color:#fff;font-weight:600}
-.ne-note{font-size:11px;color:rgba(255,255,255,.45);margin-top:3px}
+.hero-sub{font-size:13px;color:rgba(255,255,255,.45);font-family:var(--ffm);letter-spacing:.3px;margin-bottom:28px}
+
+/* ── Impact narrative strip ── */
+.narrative-strip{background:rgba(255,255,255,.04);border-top:1px solid rgba(255,255,255,.08);margin-top:4px}
+.narrative-inner{max-width:var(--max);margin:0 auto;padding:20px 32px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.narrative-text{flex:1;min-width:240px;font-size:14px;color:rgba(255,255,255,.65);line-height:1.75}
+.narrative-text strong{color:var(--gold3);font-weight:600}
+.narrative-period{font-family:var(--ffm);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.3);white-space:nowrap}
 .gold-rule{height:3px;background:linear-gradient(90deg,var(--gold),var(--gold3),transparent)}
-.main{max-width:var(--max);margin:0 auto;padding:28px 32px 60px}
-.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
-@media(max-width:640px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
-.stat{background:var(--white);border:1px solid var(--rule);border-radius:var(--r2);padding:18px 20px;position:relative;overflow:hidden}
-.stat::before{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
-.stat-gold::before{background:var(--gold2)}.stat-teal::before{background:var(--teal2)}
-.stat-blue::before{background:#2A6DB5}.stat-green::before{background:var(--green2)}
-.stat-lbl{font-family:var(--ffm);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink4);margin-bottom:8px}
-.stat-val{font-family:var(--ffd);font-size:28px;font-weight:700;line-height:1;margin-bottom:4px}
-.stat-gold .stat-val{color:var(--gold)}.stat-teal .stat-val{color:var(--teal)}
-.stat-blue .stat-val{color:#2A6DB5}.stat-green .stat-val{color:var(--green2)}
-.stat-sub{font-size:11px;color:var(--ink4)}
-.sec-title{font-family:var(--ffd);font-size:17px;font-weight:700;color:var(--navy);margin-bottom:14px;display:flex;align-items:center;gap:10px}
-.sec-title::after{content:'';flex:1;height:1px;background:var(--rule)}
-.events-wrap{background:var(--white);border:1px solid var(--rule);border-radius:var(--r2);overflow:hidden;margin-bottom:28px}
+
+/* ── Main ── */
+.main{max-width:var(--max);margin:0 auto;padding:28px 32px 64px}
+
+/* ── Insights panel ── */
+.insights{background:var(--navy);border-radius:12px;padding:20px 24px;margin-bottom:28px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:640px){.insights{grid-template-columns:1fr}}
+.insight-item{display:flex;align-items:flex-start;gap:10px}
+.insight-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.insight-body{}
+.insight-label{font-family:var(--ffm);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:3px}
+.insight-value{font-size:13px;color:rgba(255,255,255,.85);line-height:1.5;font-weight:500}
+.insight-value em{color:var(--gold3);font-style:normal}
+
+/* ── Stat cards ── */
+.stat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:28px}
+@media(max-width:700px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--white);border:1px solid var(--rule);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden}
+.stat::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
+.stat-gold::after{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.stat-teal::after{background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.stat-blue::after{background:linear-gradient(90deg,#2A6DB5,#4A8DD5)}
+.stat-green::after{background:linear-gradient(90deg,var(--green2),#2A9B5A)}
+.stat-purple::after{background:linear-gradient(90deg,#6A4DB5,#8A6DD5)}
+.stat-lbl{font-family:var(--ffm);font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink4);margin-bottom:7px}
+.stat-val{font-family:var(--ffd);font-size:26px;font-weight:700;line-height:1;margin-bottom:4px}
+.stat-gold .stat-val{color:var(--gold)}
+.stat-teal .stat-val{color:var(--teal)}
+.stat-blue .stat-val{color:#2A6DB5}
+.stat-green .stat-val{color:var(--green2)}
+.stat-purple .stat-val{color:#6A4DB5}
+.stat-sub{font-size:10.5px;color:var(--ink4);line-height:1.4}
+
+/* ── Section header ── */
+.sec-hdr{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.sec-title{font-family:var(--ffd);font-size:17px;font-weight:700;color:var(--navy)}
+.sec-title-rule{flex:1;height:1px;background:var(--rule)}
+.sec-note{font-size:11px;color:var(--ink4);font-family:var(--ffm)}
+
+/* ── Events table ── */
+.events-card{background:var(--white);border:1px solid var(--rule);border-radius:12px;overflow:hidden;margin-bottom:28px}
 .evt-table{width:100%;border-collapse:collapse;font-size:13px}
-.evt-table thead th{background:var(--navy);color:rgba(255,255,255,.7);font-family:var(--ffm);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:10px 14px;text-align:left;font-weight:400}
+.evt-table thead th{background:var(--navy);color:rgba(255,255,255,.65);font-family:var(--ffm);font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;padding:10px 14px;text-align:left;font-weight:400}
+.evt-table thead th:not(:first-child){text-align:right}
 .evt-table tbody tr{border-bottom:1px solid var(--rule)}
 .evt-table tbody tr:last-child{border-bottom:none}
 .evt-table tbody tr:hover{background:var(--paper)}
-.evt-table tbody td{padding:11px 14px;color:var(--ink);vertical-align:middle}
-.evt-name{font-weight:600;color:var(--navy);font-size:13px}
-.evt-area{display:inline-block;font-family:var(--ffm);font-size:9px;padding:2px 7px;border-radius:4px;background:var(--teal-l);color:var(--teal);margin-top:4px;letter-spacing:.5px}
-.evt-date{font-family:var(--ffm);font-size:11px;color:var(--ink4);white-space:nowrap}
-.evt-loc{font-size:12px;color:var(--ink3)}
-.evt-num{font-family:var(--ffm);font-size:13px;font-weight:600;color:var(--ink2);text-align:right}
-.evt-val{font-family:var(--ffm);font-size:13px;font-weight:600;color:var(--gold);text-align:right}
-.evt-empty{text-align:center;padding:32px;font-family:var(--ffm);font-size:11px;color:var(--ink4)}
+.evt-table td{padding:12px 14px;vertical-align:middle}
+.evt-table td:not(:first-child){text-align:right}
+.evt-name{font-weight:600;color:var(--navy);font-size:13px;line-height:1.3}
+.evt-badge{display:inline-block;font-family:var(--ffm);font-size:8px;padding:2px 7px;border-radius:4px;background:var(--teal-l);color:var(--teal);margin-top:4px;letter-spacing:.5px}
+.evt-date{font-family:var(--ffm);font-size:11px;color:var(--ink4)}
+.evt-num{font-family:var(--ffm);font-size:12px;font-weight:600;color:var(--ink2)}
+.evt-val{font-family:var(--ffm);font-size:12px;font-weight:600;color:var(--gold)}
+
+/* ── Two col ── */
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}
 @media(max-width:640px){.two-col{grid-template-columns:1fr}}
-.col-card{background:var(--white);border:1px solid var(--rule);border-radius:var(--r2);overflow:hidden}
-.col-card-header{background:var(--navy);padding:12px 16px}
-.col-card-title{font-family:var(--ffd);font-size:14px;font-weight:600;color:#fff}
-.col-card-sub{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px;font-family:var(--ffm)}
+.panel{background:var(--white);border:1px solid var(--rule);border-radius:12px;overflow:hidden}
+.panel-hdr{background:var(--navy);padding:12px 16px}
+.panel-title{font-family:var(--ffd);font-size:14px;font-weight:600;color:#fff}
+.panel-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;font-family:var(--ffm)}
+
+/* ── Volunteers ── */
 .vol-item{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--rule)}
 .vol-item:last-child{border-bottom:none}
-.vol-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--ffm);font-size:11px;font-weight:600;flex-shrink:0;letter-spacing:.5px}
-.av-0{background:var(--gold-ll);color:var(--gold)}.av-1{background:var(--teal-l);color:var(--teal)}
-.av-2{background:#E8F1FF;color:#2A6DB5}.av-3{background:var(--green-l);color:var(--green2)}
+.vol-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--ffm);font-size:11px;font-weight:600;flex-shrink:0}
+.av0{background:var(--gold-ll);color:var(--gold)}
+.av1{background:var(--teal-l);color:var(--teal)}
+.av2{background:#E8F0FF;color:#2A6DB5}
+.av3{background:var(--green-l);color:var(--green2)}
+.av4{background:#F0E8FF;color:#6A4DB5}
 .vol-info{flex:1;min-width:0}
 .vol-name{font-weight:600;font-size:13px;color:var(--navy)}
 .vol-role{font-size:11px;color:var(--ink4);margin-top:1px}
-.vol-corp{display:inline-block;font-family:var(--ffm);font-size:9px;padding:1px 5px;border-radius:3px;background:#E8F1FF;color:#2A6DB5;margin-left:5px}
-.vol-stats{text-align:right;flex-shrink:0}
+.vol-tag{display:inline-block;font-family:var(--ffm);font-size:8px;padding:1px 5px;border-radius:3px;background:#E8F0FF;color:#2A6DB5;margin-left:5px}
+.vol-right{text-align:right;flex-shrink:0}
 .vol-hrs{font-family:var(--ffm);font-size:13px;font-weight:600;color:var(--ink2)}
-.vol-dollar{font-family:var(--ffm);font-size:11px;color:var(--gold)}
-.vol-chart-wrap{padding:16px;border-top:1px solid var(--rule)}
-.vol-legend{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 14px;font-size:11px;color:var(--ink3)}
-.vol-leg-item{display:flex;align-items:center;gap:4px}
-.vol-leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.vol-val{font-family:var(--ffm);font-size:11px;color:var(--gold)}
+.vol-chart-wrap{padding:14px 16px;border-top:1px solid var(--rule)}
+.vol-legend{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 12px;font-size:10.5px;color:var(--ink3)}
+.leg-dot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:4px}
+
+/* ── Leverage ── */
 .lev-row{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--rule);font-size:13px}
 .lev-row:last-child{border-bottom:none}
-.lev-lbl{color:var(--ink3)}.lev-val{font-family:var(--ffm);font-weight:600;color:var(--ink2)}
-.lev-highlight{background:var(--gold-ll)}
-.lev-highlight .lev-lbl{color:var(--gold);font-weight:600}.lev-highlight .lev-val{color:var(--gold);font-size:15px}
+.lev-lbl{color:var(--ink3)}
+.lev-val{font-family:var(--ffm);font-weight:600;color:var(--ink2)}
 .lev-total{background:var(--navy)}
-.lev-total .lev-lbl{color:rgba(255,255,255,.7);font-weight:600}.lev-total .lev-val{color:var(--gold3);font-size:15px}
-.lev-chart-wrap{padding:16px;border-top:1px solid var(--rule)}
-.lev-note{padding:12px 16px;font-size:11px;color:var(--ink4);font-family:var(--ffm);line-height:1.6;border-top:1px solid var(--rule)}
-.dem-section{background:var(--white);border:1px solid var(--rule);border-radius:var(--r2);overflow:hidden;margin-bottom:28px}
-.dem-header{background:var(--navy);padding:12px 16px;display:flex;align-items:center;gap:16px}
-.dem-header-title{font-family:var(--ffd);font-size:14px;font-weight:600;color:#fff}
+.lev-total .lev-lbl{color:rgba(255,255,255,.6);font-weight:600}
+.lev-total .lev-val{color:var(--gold3);font-size:15px}
+.lev-ratio{background:var(--gold-ll)}
+.lev-ratio .lev-lbl{color:var(--gold);font-weight:600}
+.lev-ratio .lev-val{color:var(--gold);font-size:15px}
+.lev-chart-wrap{padding:14px 16px;border-top:1px solid var(--rule)}
+.lev-note-wrap{padding:10px 16px;border-top:1px solid var(--rule)}
+.lev-note-toggle{font-family:var(--ffm);font-size:10px;color:var(--ink4);cursor:pointer;background:none;border:none;padding:0;text-align:left;width:100%}
+.lev-note-toggle:hover{color:var(--navy)}
+.lev-note-detail{font-size:11px;color:var(--ink4);line-height:1.7;margin-top:8px;display:none}
+.lev-note-detail.open{display:block}
+
+/* ── Demographics ── */
+.dem-panel{background:var(--white);border:1px solid var(--rule);border-radius:12px;overflow:hidden;margin-bottom:28px}
+.dem-hdr{background:var(--navy);padding:12px 16px;display:flex;align-items:center;gap:16px}
+.dem-hdr-title{font-family:var(--ffd);font-size:14px;font-weight:600;color:#fff}
 .dem-bipoc{margin-left:auto;text-align:right}
 .dem-bipoc-val{font-family:var(--ffd);font-size:22px;color:var(--gold3);font-weight:700;line-height:1}
-.dem-bipoc-lbl{font-family:var(--ffm);font-size:9px;color:rgba(255,255,255,.45);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.dem-bipoc-lbl{font-family:var(--ffm);font-size:8px;color:rgba(255,255,255,.4);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
 .dem-grid{display:grid;grid-template-columns:repeat(3,1fr)}
-@media(max-width:560px){.dem-grid{grid-template-columns:1fr}}
-.dem-panel{padding:16px 18px;border-right:1px solid var(--rule)}
-.dem-panel:last-child{border-right:none}
-.dem-panel-title{font-family:var(--ffm);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink4);margin-bottom:12px}
-.dem-bar-row{margin-bottom:9px}
+@media(max-width:540px){.dem-grid{grid-template-columns:1fr}}
+.dem-col{padding:14px 16px;border-right:1px solid var(--rule)}
+.dem-col:last-child{border-right:none}
+.dem-col-title{font-family:var(--ffm);font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink4);margin-bottom:10px}
+.dem-bar-row{margin-bottom:8px}
 .dem-bar-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--ink3);margin-bottom:3px}
 .dem-bar-count{font-family:var(--ffm);font-size:10px;color:var(--ink4)}
-.dem-bar-bg{height:5px;background:var(--paper3);border-radius:3px}
-.dem-bar-fill{height:5px;border-radius:3px}
-.dem-response{padding:10px 18px;background:var(--paper2);border-top:1px solid var(--rule);font-size:11px;color:var(--ink4);font-family:var(--ffm)}
-.dem-empty{padding:24px;text-align:center;font-size:12px;color:var(--ink4);font-family:var(--ffm);grid-column:1/-1}
-.compliance{background:var(--gold-ll);border:1px solid rgba(184,134,11,.2);border-radius:var(--r);padding:14px 18px;margin-bottom:24px;font-size:12px;color:var(--ink3);line-height:1.7}
-.compliance strong{color:var(--gold)}
-.footer{background:var(--navy);padding:20px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
-.footer-org{font-family:var(--ffd);font-size:14px;color:rgba(255,255,255,.7)}
-.footer-meta{font-family:var(--ffm);font-size:10px;color:rgba(255,255,255,.35);letter-spacing:.5px;margin-top:3px}
-.footer-gen{font-family:var(--ffm);font-size:10px;color:rgba(255,255,255,.35);letter-spacing:.5px;text-align:right}
-.print-btn{position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;border:none;border-radius:var(--r);padding:10px 18px;font-family:var(--ff);font-size:13px;font-weight:600;cursor:pointer;display:none;align-items:center;gap:7px;box-shadow:0 4px 16px rgba(26,39,68,.25);transition:all .2s;z-index:99}
-.print-btn:hover{background:var(--navy3);transform:translateY(-1px)}
-.sample-warn{background:var(--paper2);border:1px solid var(--rule2);border-radius:var(--r);padding:10px 16px;margin-bottom:20px;font-size:12px;color:var(--ink3);display:none;align-items:center;gap:8px;font-family:var(--ffm)}
-.sw-dot{width:6px;height:6px;border-radius:50%;background:var(--gold2);flex-shrink:0}
-.no-data{text-align:center;padding:32px;font-family:var(--ffm);font-size:11px;color:var(--ink4)}
+.dem-bar-bg{height:4px;background:var(--paper3);border-radius:2px}
+.dem-bar-fill{height:4px;border-radius:2px}
+.dem-footer{padding:9px 16px;background:var(--paper2);border-top:1px solid var(--rule);font-size:11px;color:var(--ink4);font-family:var(--ffm)}
+
+/* ── Footer ── */
+.footer{background:var(--navy);padding:22px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.footer-org{font-family:var(--ffd);font-size:14px;color:rgba(255,255,255,.65)}
+.footer-meta{font-family:var(--ffm);font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;letter-spacing:.3px}
+.footer-right{font-family:var(--ffm);font-size:10px;color:rgba(255,255,255,.3);text-align:right;letter-spacing:.3px;line-height:1.6}
+
+/* ── Print button ── */
+.print-btn{position:fixed;bottom:22px;right:22px;background:var(--navy);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-family:var(--ff);font-size:13px;font-weight:600;cursor:pointer;display:none;align-items:center;gap:7px;box-shadow:0 4px 20px rgba(26,39,68,.3);transition:all .2s;z-index:99}
+.print-btn:hover{background:var(--navy2);transform:translateY(-1px)}
+
+/* ── Helpers ── */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* ── Print ── */
 @media print{
+  .print-btn,.status-bar{display:none!important}
   body{background:#fff;font-size:11px}
-  .print-btn,.top-banner,.sample-warn{display:none!important}
-  .hero,.col-card-header,.dem-header,.footer,.lev-total{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .hero,.footer,.insights,.panel-hdr,.dem-hdr,.lev-total,.lev-ratio{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .main{padding:16px 24px}
-  .stat,.two-col,.dem-section{break-inside:avoid}
-  @page{margin:15mm;size:A4}
+  .stat,.panel,.events-card,.dem-panel{break-inside:avoid}
+  @page{margin:14mm;size:Letter}
 }
 @media(max-width:680px){
-  .hero-inner,.main{padding-left:20px;padding-right:20px}
+  .hero-inner,.main,.footer{padding-left:20px;padding-right:20px}
+  .hero-title{font-size:26px}
   .stat-val{font-size:22px}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
 }
 </style>
 </head>
 <body>
 
-<div id="loading">
-  <div class="load-title">STARR Impact Dashboard</div>
-  <div class="load-sub">
-    <span class="load-dot">●</span><span class="load-dot">●</span><span class="load-dot">●</span>
-  </div>
+<div id="loading" role="status" aria-live="polite">
+  <div class="ld-title">STARR Impact Dashboard</div>
+  <div class="ld-bar"><div class="ld-fill"></div></div>
 </div>
 
-<div id="app">
-  <div class="top-banner"><span id="top-org"></span> &nbsp;·&nbsp; Volunteer Impact Dashboard &nbsp;·&nbsp; Fiscal Year <span id="top-year"></span></div>
+<div id="app" aria-label="STARR Volunteer Impact Dashboard">
+
+  <div class="status-bar" id="status-bar">
+    <span class="status-dot" id="status-dot"></span>
+    <span id="status-text"></span>
+  </div>
 
   <div class="hero">
     <div class="hero-inner">
-      <div>
-        <div class="hero-eyebrow">Contributed Services Report</div>
-        <div class="hero-title" id="hero-title">Volunteer Impact<br><em>Dashboard</em></div>
-        <div class="hero-meta" id="hero-meta"></div>
+      <div class="hero-eyebrow">Contributed Services Report</div>
+      <div class="hero-title" id="hero-title">STARR Community Services<br>International, Inc. — <em>Volunteer Impact</em></div>
+      <div class="hero-sub" id="hero-sub"></div>
+    </div>
+    <div class="narrative-strip">
+      <div class="narrative-inner">
+        <div class="narrative-text" id="narrative-text"></div>
+        <div class="narrative-period" id="narrative-period"></div>
       </div>
-      <div id="hero-right"></div>
     </div>
   </div>
   <div class="gold-rule"></div>
 
   <div class="main">
-    <div class="sample-warn" id="sw"><div class="sw-dot"></div>Showing sample data — connect your Google Sheet via STARR Tools → Export Dashboard JSON</div>
 
-    <div class="stat-grid">
-      <div class="stat stat-gold"><div class="stat-lbl">Active Volunteers</div><div class="stat-val" id="s-vols">—</div><div class="stat-sub" id="s-vols-sub"></div></div>
-      <div class="stat stat-teal"><div class="stat-lbl">Total Hours</div><div class="stat-val" id="s-hours">—</div><div class="stat-sub" id="s-hours-sub"></div></div>
-      <div class="stat stat-blue"><div class="stat-lbl">Total Program Value</div><div class="stat-val" id="s-value">—</div><div class="stat-sub" id="s-value-sub"></div></div>
-      <div class="stat stat-green"><div class="stat-lbl">Leverage Ratio</div><div class="stat-val" id="s-leverage">—</div><div class="stat-sub" id="s-leverage-sub"></div></div>
+    <!-- Insights panel -->
+    <div class="insights" id="insights-panel" role="region" aria-label="Key insights"></div>
+
+    <!-- Stat cards -->
+    <div class="stat-grid" role="region" aria-label="Summary metrics">
+      <div class="stat stat-gold">
+        <div class="stat-lbl">Active Volunteers</div>
+        <div class="stat-val" id="s-vols">—</div>
+        <div class="stat-sub" id="s-vols-sub"></div>
+      </div>
+      <div class="stat stat-purple">
+        <div class="stat-lbl">Youth Served</div>
+        <div class="stat-val" id="s-youth">—</div>
+        <div class="stat-sub" id="s-youth-sub"></div>
+      </div>
+      <div class="stat stat-teal">
+        <div class="stat-lbl">Total Hours</div>
+        <div class="stat-val" id="s-hours">—</div>
+        <div class="stat-sub" id="s-hours-sub"></div>
+      </div>
+      <div class="stat stat-blue">
+        <div class="stat-lbl">Program Value</div>
+        <div class="stat-val" id="s-value">—</div>
+        <div class="stat-sub" id="s-value-sub"></div>
+      </div>
+      <div class="stat stat-green">
+        <div class="stat-lbl">Leverage Ratio</div>
+        <div class="stat-val" id="s-leverage">—</div>
+        <div class="stat-sub" id="s-leverage-sub"></div>
+      </div>
     </div>
 
-    <div class="sec-title">Programs &amp; Events</div>
-    <div class="events-wrap">
-      <table class="evt-table">
-        <thead><tr><th>Program / Event</th><th>Date</th><th>Location</th><th style="text-align:right">Youth</th><th style="text-align:right">Vol. Hrs</th><th style="text-align:right">Value</th></tr></thead>
+    <!-- Programs & Events -->
+    <div class="sec-hdr">
+      <div class="sec-title">Programs &amp; Events</div>
+      <div class="sec-title-rule"></div>
+      <div class="sec-note" id="events-count"></div>
+    </div>
+    <div class="events-card">
+      <table class="evt-table" aria-label="Programs and events table">
+        <thead>
+          <tr>
+            <th style="text-align:left">Program / Event</th>
+            <th>Date</th>
+            <th>Location</th>
+            <th>Youth</th>
+            <th>Vol. Hrs</th>
+            <th>Value</th>
+          </tr>
+        </thead>
         <tbody id="events-body"></tbody>
       </table>
     </div>
 
+    <!-- Two column: contributors + leverage -->
     <div class="two-col">
-      <div class="col-card">
-        <div class="col-card-header"><div class="col-card-title">Top Contributors</div><div class="col-card-sub">Ranked by total hours logged</div></div>
+      <div class="panel">
+        <div class="panel-hdr">
+          <div class="panel-title">Top Contributors</div>
+          <div class="panel-sub">Ranked by total hours logged</div>
+        </div>
         <div id="vols-list"></div>
         <div class="vol-legend" id="vol-legend"></div>
-        <div class="vol-chart-wrap"><div style="position:relative;height:170px"><canvas id="vol-chart" role="img" aria-label="Donut chart of volunteer value by contributor"></canvas></div></div>
+        <div class="vol-chart-wrap">
+          <div style="position:relative;height:160px">
+            <canvas id="vol-chart" role="img" aria-label="Donut chart of volunteer value"></canvas>
+          </div>
+        </div>
       </div>
-      <div class="col-card">
-        <div class="col-card-header"><div class="col-card-title">Leverage Analysis</div><div class="col-card-sub">Program value per cash dollar invested</div></div>
+
+      <div class="panel">
+        <div class="panel-hdr">
+          <div class="panel-title">Leverage Analysis</div>
+          <div class="panel-sub">Every dollar of cash generates more program value</div>
+        </div>
         <div id="lev-rows"></div>
-        <div class="lev-chart-wrap"><div style="position:relative;height:150px"><canvas id="lev-chart" role="img" aria-label="Bar chart of program value components"></canvas></div></div>
-        <div class="lev-note" id="lev-note"></div>
+        <div class="lev-chart-wrap">
+          <div style="position:relative;height:140px">
+            <canvas id="lev-chart" role="img" aria-label="Bar chart of program value components"></canvas>
+          </div>
+        </div>
+        <div class="lev-note-wrap">
+          <button class="lev-note-toggle" onclick="toggleNote()" aria-expanded="false">
+            ↓ How we calculate this
+          </button>
+          <div class="lev-note-detail" id="lev-note-detail">
+            Volunteer hours are valued at the Independent Sector published rate per GAAP ASC 958-605 and FASB guidance on nonprofit volunteer disclosures. In-kind contributions are recorded at fair market value as of date of receipt. All figures are unaudited. Retain source documentation supporting all entries.
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="sec-title">Volunteer Demographics</div>
-    <div class="dem-section">
-      <div class="dem-header">
-        <div><div class="dem-header-title">Community Representation</div><div style="font-family:var(--ffm);font-size:10px;color:rgba(255,255,255,.4);margin-top:3px">Aggregate counts only — no personal data stored in this dashboard</div></div>
+    <!-- Demographics -->
+    <div class="sec-hdr">
+      <div class="sec-title">Volunteer Demographics</div>
+      <div class="sec-title-rule"></div>
+    </div>
+    <div class="dem-panel">
+      <div class="dem-hdr">
+        <div>
+          <div class="dem-hdr-title">Community Representation</div>
+          <div style="font-family:var(--ffm);font-size:9px;color:rgba(255,255,255,.35);margin-top:3px">Aggregate counts only — no personal data stored in this dashboard</div>
+        </div>
         <div class="dem-bipoc" id="dem-bipoc"></div>
       </div>
       <div class="dem-grid" id="dem-grid"></div>
-      <div class="dem-response" id="dem-response"></div>
+      <div class="dem-footer" id="dem-footer"></div>
     </div>
 
-    <div class="compliance"><strong>Contributed Services Documentation</strong> — Volunteer hours are valued at the Independent Sector published rate per GAAP ASC 958-605 and FASB guidance on nonprofit volunteer disclosures. In-kind contributions are recorded at fair market value as of the date of receipt. All figures are unaudited. Retain source documentation supporting all entries.</div>
-  </div>
+  </div><!-- /main -->
 
   <div class="footer">
-    <div><div class="footer-org" id="footer-org"></div><div class="footer-meta">Executive Director: <span id="footer-ed"></span></div></div>
-    <div class="footer-gen" id="footer-gen"></div>
+    <div>
+      <div class="footer-org" id="footer-org"></div>
+      <div class="footer-meta">Executive Director: <span id="footer-ed"></span></div>
+    </div>
+    <div class="footer-right" id="footer-right"></div>
   </div>
-</div>
 
-<button class="print-btn" id="print-btn" onclick="window.print()">
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+</div><!-- /app -->
+
+<button class="print-btn" id="print-btn" onclick="window.print()" aria-label="Print or save as PDF">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
   Print / Save PDF
 </button>
 
 <script>
+// ── Formatters ─────────────────────────────────────────────
 function $f(n){return'$'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function $k(n){var v=Number(n||0);return v>=1000?'$'+(v/1000).toFixed(1)+'k':'$'+v.toFixed(0);}
 function hf(h){return Number(h||0).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function pct(a,b){return b>0?Math.round((a/b)*100)+'%':'0%';}
 function fdate(d){if(!d)return'—';try{return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}catch(e){return d;}}
-var AVC=['av-0','av-1','av-2','av-3'];
-var CC=['#B8860B','#0F5C5B','#2A6DB5','#1A6B3A','#7A3A00'];
+var AV_CLS=['av0','av1','av2','av3','av4'];
+var CC=['#B8860B','#0A5C5B','#2A6DB5','#1A6B3A','#6A4DB5'];
+var DEM_COLORS={raceEthnicity:'#0A5C5B',ageRange:'#2A6DB5',gender:'#B8860B'};
 
-function sample(){
-  return{_isSample:true,generatedAt:new Date().toISOString(),
-    settings:{orgName:'STARR Community Services International, Inc.',fiscalYear:'2026',executiveDirector:'Katrina Adams',standardRate:31.80,professionalRate:95.00},
-    summary:{totalVolunteers:3,totalHours:13.0,totalVolValue:1045.40,totalInKind:3587.50,cashGrants:12500,totalProgramValue:17132.90,leverageRatio:1.4,totalParticipants:245,totalContacts:5},
-    recentEvents:[
-      {id:'P001',name:'FIRST Robotics — Kickoff Session',date:'2026-04-15',area:'FIRST Robotics',location:'Gary Community Center',youthServed:40,adults:12,volHours:13,totalValue:3547},
-      {id:'P002',name:'Astronomy Night — Auburn Gresham Park',date:'2026-05-10',area:'Astronomy / STEM',location:'Auburn Gresham Park',youthServed:55,adults:20,volHours:0,totalValue:0},
-      {id:'P003',name:'STEAM Community Day — June 6',date:'2026-06-06',area:'Community Events',location:'TBD — confirm venue',youthServed:150,adults:60,volHours:0,totalValue:12500}
-    ],
-    topVolunteers:[{name:'Sarah Chen',hours:6,value:570,type:'Corporate'},{name:'Dr. James Webb',hours:4,value:380,type:'Individual'},{name:'Antoine Hale',hours:3,value:95.40,type:'Individual'}],
-    demographics:{raceEthnicity:{'Black / African American':4,'Asian / Pacific Islander':1},gender:{Female:3,Male:2},ageRange:{'25–34':1,'35–44':2,'45–54':2},bipocCount:5,bipocPct:100,demographicResponseRate:100}
-  };
+// ── Toggle methodology note ─────────────────────────────────
+function toggleNote(){
+  var d=document.getElementById('lev-note-detail');
+  var b=document.querySelector('.lev-note-toggle');
+  var open=d.classList.toggle('open');
+  b.textContent=(open?'↑':'↓')+' How we calculate this';
+  b.setAttribute('aria-expanded',open);
 }
 
-function render(data){
-  var s=data.settings||{};var sum=data.summary||{};
-  if(data._isSample)document.getElementById('sw').style.display='flex';
-  document.getElementById('top-org').textContent=s.orgName||'';
-  document.getElementById('top-year').textContent=s.fiscalYear||'';
-  document.getElementById('hero-title').innerHTML=esc(s.orgName||'Organization')+'<br><em>Volunteer Impact Dashboard</em>';
-  document.getElementById('hero-meta').innerHTML='Fiscal Year <strong>'+esc(String(s.fiscalYear||''))+'</strong> &nbsp;·&nbsp; ED: <strong>'+esc(s.executiveDirector||'')+'</strong> &nbsp;·&nbsp; IS Rate <strong>$'+Number(s.standardRate||31.80).toFixed(2)+'/hr</strong> &nbsp;·&nbsp; Professional <strong>$'+Number(s.professionalRate||95).toFixed(2)+'/hr</strong>';
-  var future=(data.recentEvents||[]).filter(function(e){return e.date>=new Date().toISOString().slice(0,10);}).sort(function(a,b){return a.date.localeCompare(b.date);});
-  if(future.length>0){var ne=future[0];document.getElementById('hero-right').innerHTML='<div class="next-event"><div class="ne-label">Next Event</div><div class="ne-date">'+esc(fdate(ne.date))+'</div><div class="ne-note">'+esc(ne.name)+'</div></div>';}
+// ── Render ──────────────────────────────────────────────────
+function render(data,isLive){
+  var s=data.settings||{};
+  var sum=data.summary||{};
+
+  // Status bar
+  var sb=document.getElementById('status-bar');
+  sb.className='status-bar '+(isLive?'live':'sample');
+  var gen=data.generatedAt?new Date(data.generatedAt):null;
+  var genStr=gen?gen.toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}):null;
+  document.getElementById('status-text').innerHTML=isLive
+    ?(genStr?'Live data — updated '+genStr:'Live data connected')
+    :'Preview mode — showing sample data · <a href="#" onclick="return false">Connect your Google Sheet via ⭐ STARR Tools → Export Dashboard JSON</a>';
+
+  // Hero
+  document.getElementById('hero-title').innerHTML=
+    esc(s.orgName||'STARR Community Services International, Inc.')+'<br><em>Volunteer Impact Dashboard</em>';
+  document.getElementById('hero-sub').innerHTML=
+    'Fiscal Year <strong style="color:rgba(255,255,255,.75)">'+esc(String(s.fiscalYear||''))+'</strong>'+
+    ' &nbsp;·&nbsp; ED: <strong style="color:rgba(255,255,255,.75)">'+esc(s.executiveDirector||'')+'</strong>'+
+    ' &nbsp;·&nbsp; IS Rate <strong style="color:var(--gold3)">$'+Number(s.standardRate||31.80).toFixed(2)+'/hr</strong>'+
+    (s.professionalRate?' &nbsp;·&nbsp; Professional <strong style="color:var(--gold3)">$'+Number(s.professionalRate).toFixed(2)+'/hr</strong>':'');
+
+  // Narrative strip
+  var totalPeople=(sum.totalParticipants||0);
+  var youth=sum.youthServed||(data.recentEvents||[]).reduce(function(a,e){return a+(e.youthServed||0);},0);
+  document.getElementById('narrative-text').innerHTML=
+    'In fiscal year '+esc(String(s.fiscalYear||'2026'))+', STARR mobilized '+
+    '<strong>'+(sum.totalVolunteers||0)+' volunteers</strong> who contributed '+
+    '<strong>'+hf(sum.totalHours||0)+' hours</strong> of service — worth '+
+    '<strong>'+$f(sum.totalVolValue||0)+'</strong> in labor value. '+
+    'Combined with '+$f(sum.totalInKind||0)+' in in-kind contributions and '+
+    $f(sum.cashGrants||0)+' in cash grants, STARR delivered '+
+    '<strong>'+$f(sum.totalProgramValue||0)+' in total program value</strong>, '+
+    'serving <strong>'+(youth||totalPeople)+' youth and community members</strong>.';
+  document.getElementById('narrative-period').textContent=
+    'FY '+String(s.fiscalYear||'2026')+' · '+esc(s.orgName||'');
+
+  // Insights panel
+  renderInsights(data,sum,s,youth);
+
+  // Stats
   document.getElementById('s-vols').textContent=sum.totalVolunteers||'0';
-  document.getElementById('s-vols-sub').textContent=(sum.totalParticipants||0)+' total participants served';
+  document.getElementById('s-vols-sub').textContent=(sum.totalContacts||0)+' total contacts in ecosystem';
+  document.getElementById('s-youth').textContent=youth||'—';
+  document.getElementById('s-youth-sub').textContent=(sum.totalParticipants||0)+' total participants served';
   document.getElementById('s-hours').textContent=hf(sum.totalHours||0);
   document.getElementById('s-hours-sub').textContent='Labor value: '+$f(sum.totalVolValue||0);
-  document.getElementById('s-value').textContent=$f(sum.totalProgramValue||0);
+  document.getElementById('s-value').textContent=$k(sum.totalProgramValue||0);
   document.getElementById('s-value-sub').textContent='Vol + In-Kind + Cash grants';
   document.getElementById('s-leverage').textContent=sum.leverageRatio?sum.leverageRatio.toFixed(1)+'×':'—';
-  document.getElementById('s-leverage-sub').textContent=sum.cashGrants?'per $1 of cash ('+$f(sum.cashGrants)+' received)':'Set cash grants in SETTINGS tab';
+  document.getElementById('s-leverage-sub').textContent=
+    sum.cashGrants?'per $1 of cash ('+$f(sum.cashGrants)+' received)':'Enter cash grants in Settings tab';
+
+  // Events
   renderEvents(data.recentEvents||[]);
+
+  // Volunteers
   renderVols(data.topVolunteers||[],sum);
+
+  // Leverage
   renderLeverage(sum,s);
+
+  // Demographics
   renderDem(data.demographics||{});
+
+  // Footer
   document.getElementById('footer-org').textContent=s.orgName||'';
   document.getElementById('footer-ed').textContent=s.executiveDirector||'';
-  var gen=data.generatedAt?new Date(data.generatedAt).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}):'';
-  document.getElementById('footer-gen').innerHTML='Data source: Google Sheets tracker<br>'+(gen?'Updated '+gen:'');
+  document.getElementById('footer-right').innerHTML=
+    'Data source: Google Sheets tracker<br>'+
+    (genStr?'Updated '+genStr:'');
 }
 
-function renderEvents(evts){
-  var tb=document.getElementById('events-body');
-  if(!evts.length){tb.innerHTML='<tr><td colspan="6" class="evt-empty">No programs logged yet</td></tr>';return;}
-  tb.innerHTML=evts.slice().sort(function(a,b){return b.date.localeCompare(a.date);}).map(function(ev,i){
-    return'<tr style="'+(i%2?'background:var(--paper)':'')+'">'+
-      '<td><div class="evt-name">'+esc(ev.name)+'</div>'+(ev.area?'<div class="evt-area">'+esc(ev.area)+'</div>':'')+'</td>'+
-      '<td class="evt-date">'+esc(fdate(ev.date))+'</td>'+
-      '<td class="evt-loc">'+esc(ev.location||'—')+'</td>'+
-      '<td class="evt-num">'+(ev.youthServed||'—')+'</td>'+
-      '<td class="evt-num">'+(ev.volHours?hf(ev.volHours):'—')+'</td>'+
-      '<td class="evt-val">'+(ev.totalValue?$f(ev.totalValue):'—')+'</td></tr>';
+// ── Insights panel ──────────────────────────────────────────
+function renderInsights(data,sum,s,youth){
+  var events=data.recentEvents||[];
+  var topEvent=events.slice().sort(function(a,b){return(b.totalValue||0)-(a.totalValue||0);})[0];
+  var topVol=(data.topVolunteers||[])[0];
+  var ratio=sum.leverageRatio||0;
+
+  var items=[
+    {icon:'🏆',label:'Top Program This Period',
+     value:topEvent?(esc(topEvent.name)+' — <em>'+$f(topEvent.totalValue||0)+'</em> in program value'):'No events logged yet'},
+    {icon:'⏱',label:'Volunteer Hours This Year',
+     value:'<em>'+hf(sum.totalHours||0)+'</em> hours logged across '+(events.length||0)+' program'+(events.length===1?'':'s')},
+    {icon:'📈',label:'Leverage on Cash Grants',
+     value:'Every $1 of grant funding generated <em>'+ratio.toFixed(1)+'×</em> in total program value'},
+  ];
+
+  document.getElementById('insights-panel').innerHTML=items.map(function(item){
+    return '<div class="insight-item">'+
+      '<div class="insight-icon">'+item.icon+'</div>'+
+      '<div class="insight-body">'+
+        '<div class="insight-label">'+item.label+'</div>'+
+        '<div class="insight-value">'+item.value+'</div>'+
+      '</div>'+
+    '</div>';
   }).join('');
 }
 
+// ── Events ──────────────────────────────────────────────────
+function renderEvents(events){
+  var tb=document.getElementById('events-body');
+  document.getElementById('events-count').textContent=events.length+' program'+(events.length===1?'':'s');
+  if(!events.length){
+    tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:28px;font-family:var(--ffm);font-size:11px;color:var(--ink4)">No programs logged yet</td></tr>';
+    return;
+  }
+  tb.innerHTML=events.slice().sort(function(a,b){return b.date.localeCompare(a.date);}).map(function(ev,i){
+    return'<tr style="'+(i%2?'background:var(--paper)':'')+'">'+
+      '<td><div class="evt-name">'+esc(ev.name)+'</div>'+
+        (ev.area?'<div class="evt-badge">'+esc(ev.area)+'</div>':'')+'</td>'+
+      '<td><div class="evt-date">'+esc(fdate(ev.date))+'</div></td>'+
+      '<td style="font-size:12px;color:var(--ink3)">'+esc(ev.location||'—')+'</td>'+
+      '<td><div class="evt-num">'+(ev.youthServed||'—')+'</div></td>'+
+      '<td><div class="evt-num">'+(ev.volHours?hf(ev.volHours):'—')+'</div></td>'+
+      '<td><div class="evt-val">'+(ev.totalValue?$f(ev.totalValue):'—')+'</div></td>'+
+    '</tr>';
+  }).join('');
+}
+
+// ── Volunteers ──────────────────────────────────────────────
 function renderVols(vols,sum){
   var el=document.getElementById('vols-list');
-  if(!vols.length){el.innerHTML='<div class="no-data">No hours logged yet</div>';return;}
-  var ini=function(n){return n.split(' ').filter(function(p){return p.length>0;}).map(function(p){return p[0].toUpperCase();}).slice(0,2).join('');};
-  el.innerHTML=vols.map(function(v,i){return'<div class="vol-item"><div class="vol-av '+AVC[i%4]+'">'+ini(v.name)+'</div><div class="vol-info"><div class="vol-name">'+esc(v.name)+(v.type==='Corporate'?'<span class="vol-corp">Corp</span>':'')+'</div><div class="vol-role">'+(v.type||'Individual')+'</div></div><div class="vol-stats"><div class="vol-hrs">'+hf(v.hours)+' hrs</div><div class="vol-dollar">'+$f(v.value)+'</div></div></div>';}).join('');
-  document.getElementById('vol-legend').innerHTML=vols.map(function(v,i){return'<span class="vol-leg-item"><span class="vol-leg-dot" style="background:'+CC[i%5]+'"></span>'+esc(v.name.split(' ')[0])+' '+pct(v.value,sum.totalVolValue||1)+'</span>';}).join('');
-  new Chart(document.getElementById('vol-chart'),{type:'doughnut',data:{labels:vols.map(function(v){return v.name;}),datasets:[{data:vols.map(function(v){return v.value;}),backgroundColor:CC.slice(0,vols.length),borderWidth:3,borderColor:'#FEFEFE'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return' '+c.label+': '+$f(c.parsed);}}}},cutout:'62%'}});
+  if(!vols.length){el.innerHTML='<div style="padding:24px;text-align:center;font-size:12px;color:var(--ink4);font-family:var(--ffm)">No hours logged yet</div>';return;}
+  function ini(n){return n.split(' ').filter(function(p){return p.length>0;}).map(function(p){return p[0].toUpperCase();}).slice(0,2).join('');}
+  el.innerHTML=vols.slice(0,5).map(function(v,i){
+    return'<div class="vol-item">'+
+      '<div class="vol-av '+AV_CLS[i%5]+'">'+ini(v.name)+'</div>'+
+      '<div class="vol-info">'+
+        '<div class="vol-name">'+esc(v.name)+(v.type==='Corporate'?'<span class="vol-tag">Corp</span>':'')+'</div>'+
+        '<div class="vol-role">'+(v.org||v.type||'Individual')+'</div>'+
+      '</div>'+
+      '<div class="vol-right">'+
+        '<div class="vol-hrs">'+hf(v.hours)+' hrs</div>'+
+        '<div class="vol-val">'+$f(v.value)+'</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+
+  document.getElementById('vol-legend').innerHTML=vols.slice(0,5).map(function(v,i){
+    return'<span><span class="leg-dot" style="background:'+CC[i%5]+'"></span>'+
+      esc(v.name.split(' ')[0])+' '+pct(v.value,sum.totalVolValue||1)+'</span>';
+  }).join('');
+
+  new Chart(document.getElementById('vol-chart'),{
+    type:'doughnut',
+    data:{
+      labels:vols.slice(0,5).map(function(v){return v.name;}),
+      datasets:[{data:vols.slice(0,5).map(function(v){return v.value;}),backgroundColor:CC.slice(0,5),borderWidth:3,borderColor:var_='#FEFEFE'}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return' '+c.label+': '+$f(c.parsed);}}}},cutout:'62%'}
+  });
 }
 
+// ── Leverage ────────────────────────────────────────────────
 function renderLeverage(sum,s){
-  document.getElementById('lev-rows').innerHTML=[
-    {l:'Cash grants received',v:$f(sum.cashGrants||0),c:''},
-    {l:'Volunteer labor value',v:$f(sum.totalVolValue||0),c:'',vs:'color:var(--gold)'},
-    {l:'In-kind contributions',v:$f(sum.totalInKind||0),c:'',vs:'color:var(--teal)'},
-    {l:'Total program value',v:$f(sum.totalProgramValue||0),c:'lev-total'},
-    {l:'Leverage ratio',v:sum.leverageRatio?sum.leverageRatio.toFixed(1)+'×':'N/A',c:'lev-highlight'}
-  ].map(function(r){return'<div class="lev-row '+r.c+'"><span class="lev-lbl">'+r.l+'</span><span class="lev-val"'+(r.vs?' style="'+r.vs+'"':'')+'>'+r.v+'</span></div>';}).join('');
-  new Chart(document.getElementById('lev-chart'),{type:'bar',data:{labels:['Cash Grants','In-Kind','Vol. Labor'],datasets:[{data:[sum.cashGrants||0,sum.totalInKind||0,sum.totalVolValue||0],backgroundColor:['#2A6DB5','#0F5C5B','#B8860B'],borderRadius:4,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return' '+$f(c.parsed.y);}}}},scales:{x:{ticks:{font:{size:10},color:'#9A9AB0'},grid:{display:false}},y:{ticks:{font:{size:10},color:'#9A9AB0',callback:function(v){return v>=1000?'$'+(v/1000).toFixed(0)+'k':'$'+v;}},grid:{color:'rgba(170,165,155,.15)'}}}}});
-  document.getElementById('lev-note').textContent='Volunteer hours @ $'+Number(s.standardRate||31.80).toFixed(2)+'/hr standard · $'+Number(s.professionalRate||95).toFixed(2)+'/hr professional · Per GAAP ASC 958-605';
+  var rows=[
+    {lbl:'Cash grants received',val:$f(sum.cashGrants||0),cls:'',vc:''},
+    {lbl:'Volunteer labor value',val:$f(sum.totalVolValue||0),cls:'',vc:'color:var(--gold)'},
+    {lbl:'In-kind contributions',val:$f(sum.totalInKind||0),cls:'',vc:'color:var(--teal)'},
+    {lbl:'Total program value',val:$f(sum.totalProgramValue||0),cls:'lev-total',vc:''},
+    {lbl:'Leverage ratio',val:(sum.leverageRatio?sum.leverageRatio.toFixed(1)+'×':'N/A'),cls:'lev-ratio',vc:''},
+  ];
+  document.getElementById('lev-rows').innerHTML=rows.map(function(r){
+    return'<div class="lev-row '+r.cls+'"><span class="lev-lbl">'+r.lbl+'</span>'+
+      '<span class="lev-val"'+(r.vc?' style="'+r.vc+'"':'')+'>'+r.val+'</span></div>';
+  }).join('');
+
+  new Chart(document.getElementById('lev-chart'),{
+    type:'bar',
+    data:{
+      labels:['Cash Grants','In-Kind','Vol. Labor'],
+      datasets:[{data:[sum.cashGrants||0,sum.totalInKind||0,sum.totalVolValue||0],
+        backgroundColor:['#2A6DB5','#0A5C5B','#B8860B'],borderRadius:4,borderWidth:0}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return' '+$f(c.parsed.y);}}}},
+      scales:{x:{ticks:{font:{size:10},color:'#9898B0'},grid:{display:false}},
+        y:{ticks:{font:{size:10},color:'#9898B0',callback:function(v){return $k(v);}},grid:{color:'rgba(180,175,165,.15)'}}}}
+  });
 }
 
+// ── Demographics ────────────────────────────────────────────
 function renderDem(dem){
-  var bEl=document.getElementById('dem-bipoc');
-  if(dem.bipocPct!=null)bEl.innerHTML='<div class="dem-bipoc-val">'+dem.bipocPct+'%</div><div class="dem-bipoc-lbl">BIPOC</div>';
+  if(dem.bipocPct!=null){
+    document.getElementById('dem-bipoc').innerHTML=
+      '<div class="dem-bipoc-val">'+dem.bipocPct+'%</div>'+
+      '<div class="dem-bipoc-lbl">BIPOC</div>';
+  }
+  var panels=[
+    {title:'Race / Ethnicity',data:dem.raceEthnicity||{},color:'#0A5C5B'},
+    {title:'Age Range',data:dem.ageRange||{},color:'#2A6DB5'},
+    {title:'Gender',data:dem.gender||{},color:'#B8860B'},
+  ];
   var tot=function(o){return Object.values(o||{}).reduce(function(s,v){return s+(v||0);},0);};
-  var panels=[{title:'Race / Ethnicity',data:dem.raceEthnicity||{},color:'#0F5C5B'},{title:'Age Range',data:dem.ageRange||{},color:'#2A6DB5'},{title:'Gender',data:dem.gender||{},color:'#B8860B'}];
   var allEmpty=panels.every(function(p){return!Object.keys(p.data).length;});
   document.getElementById('dem-grid').innerHTML=allEmpty
-    ?'<div class="dem-empty">Demographic data will appear here once contacts complete their profiles</div>'
+    ?'<div style="padding:24px;text-align:center;font-size:12px;color:var(--ink4);font-family:var(--ffm);grid-column:1/-1">Demographic data collected through optional fields at registration. Volunteers self-report.</div>'
     :panels.map(function(p,pi){
-      var t=tot(p.data);var entries=Object.entries(p.data).sort(function(a,b){return b[1]-a[1];});
-      return'<div class="dem-panel"'+(pi<2?' style="border-right:1px solid var(--rule)"':'')+'>'+
-        '<div class="dem-panel-title">'+p.title+'</div>'+
-        (!entries.length?'<div style="font-size:11px;color:var(--ink4)">No data yet</div>':
-          entries.map(function(kv){var w=t>0?Math.round((kv[1]/t)*100):0;return'<div class="dem-bar-row"><div class="dem-bar-labels"><span>'+esc(kv[0])+'</span><span class="dem-bar-count">'+kv[1]+' ('+w+'%)</span></div><div class="dem-bar-bg"><div class="dem-bar-fill" style="width:'+w+'%;background:'+p.color+'"></div></div></div>';}).join(''))+
+      var t=tot(p.data);
+      var entries=Object.entries(p.data).sort(function(a,b){return b[1]-a[1];});
+      return'<div class="dem-col"'+(pi<2?' style="border-right:1px solid var(--rule)"':'')+'>'+
+        '<div class="dem-col-title">'+p.title+'</div>'+
+        entries.map(function(kv){
+          var w=t>0?Math.round((kv[1]/t)*100):0;
+          return'<div class="dem-bar-row">'+
+            '<div class="dem-bar-labels"><span>'+esc(kv[0])+'</span><span class="dem-bar-count">'+kv[1]+' ('+w+'%)</span></div>'+
+            '<div class="dem-bar-bg"><div class="dem-bar-fill" style="width:'+w+'%;background:'+p.color+'"></div></div>'+
+          '</div>';
+        }).join('')+
       '</div>';
     }).join('');
   var rr=dem.demographicResponseRate;
-  document.getElementById('dem-response').textContent=rr!=null?'Demographic response rate: '+rr+'% of contacts · Fields are optional — volunteers self-report':'Demographic fields are optional. Volunteers self-report during registration or intake.';
+  document.getElementById('dem-footer').textContent=
+    rr!=null?'Demographic response rate: '+rr+'% of contacts · Fields are optional — volunteers self-report'
+    :'Demographic fields are optional. Volunteers self-report during registration or intake.';
 }
 
+// ── Sample data ─────────────────────────────────────────────
+function sampleData(){
+  return{
+    generatedAt:new Date().toISOString(),
+    settings:{orgName:'STARR Community Services International, Inc.',fiscalYear:'2026',
+      executiveDirector:'Katrina Adams',standardRate:31.80,professionalRate:95.00},
+    summary:{totalVolunteers:18,totalHours:76,totalVolValue:3175.20,
+      totalInKind:2800,cashGrants:5000,totalProgramValue:10975.20,
+      leverageRatio:2.2,totalParticipants:337,totalContacts:84,youthServed:150},
+    recentEvents:[
+      {id:'P003',name:'STEAM Community Day — June 6',date:'2026-06-06',area:'Community Events',
+       location:'Foster Park, Chicago',youthServed:150,adults:60,volHours:76,totalValue:5975},
+      {id:'P002',name:'Astronomy Night — Auburn Gresham Park',date:'2025-05-09',area:'Astronomy / STEM',
+       location:'Auburn Gresham Park',youthServed:55,adults:20,volHours:0,totalValue:467.50},
+      {id:'P001',name:'FIRST Robotics — Kickoff Session',date:'2025-04-14',area:'FIRST Robotics',
+       location:'Gary Community Center',youthServed:40,adults:12,volHours:13,totalValue:3120},
+    ],
+    topVolunteers:[
+      {name:'Aishwarya Balasubramanian',hours:4,value:127.20,type:'Individual'},
+      {name:'Shawn Chan',hours:4,value:127.20,type:'Individual'},
+      {name:'Euiseong Kim',hours:4,value:127.20,type:'Individual'},
+      {name:'Trennice Swan',hours:4,value:127.20,type:'Individual'},
+      {name:'Arsenio Powers',hours:4,value:127.20,type:'Individual'},
+    ],
+    demographics:{
+      raceEthnicity:{'Black / African American':4,'Asian / Pacific Islander':1},
+      gender:{Female:3,Male:2},ageRange:{'35–44':2,'45–54':2,'25–34':1},
+      bipocCount:5,bipocPct:100,demographicResponseRate:6
+    }
+  };
+}
+
+// ── Init ────────────────────────────────────────────────────
 async function init(){
   try{
     var res=await fetch('dashboard_data.json?t='+Date.now());
-    if(!res.ok)throw new Error('not found');
-    render(await res.json());
-  }catch(e){render(sample());}
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    var data=await res.json();
+    // Check if real data or placeholder template
+    var isReal=data.summary&&(data.summary.totalVolunteers>0||data.summary.totalHours>0);
+    render(data,isReal);
+  }catch(e){
+    render(sampleData(),false);
+  }
   document.getElementById('loading').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('print-btn').style.display='flex';
