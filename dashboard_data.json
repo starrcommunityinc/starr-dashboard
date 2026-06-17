@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-17T13:37:27.217Z",
+  "generatedAt": "2026-06-17T14:46:30.823Z",
   "settings": {
     "orgName": "STARR Community Services International, Inc.",
     "fiscalYear": "2026",
@@ -8,13 +8,13 @@
     "professionalRate": 95
   },
   "summary": {
-    "totalVolunteers": 17,
-    "totalHours": 68,
-    "totalVolValue": 2415.2,
-    "totalInKind": 3587.5,
+    "totalVolunteers": 18,
+    "totalHours": 76,
+    "totalVolValue": 3175.2,
+    "totalInKind": 0,
     "cashGrants": 5000,
-    "totalProgramValue": 11002.7,
-    "leverageRatio": 2.2,
+    "totalProgramValue": 8175.2,
+    "leverageRatio": 1.6,
     "totalParticipants": 337,
     "totalContacts": 84
   },
@@ -25,11 +25,11 @@
       "date": "2026-06-06",
       "area": "Community Events",
       "location": "Foster Park",
-      "partners": "Chicago Park District, Kids First Chicago, Ntional University of Singapore, Irie Jerk Hut, Kindred Impact LLC, U of C - Dept of Astronomy and Astrophysics, Chicago Fund for Safe and Peaceful Communities, Spring Board Foundation",
+      "partners": "Chicago Park District, Kids First Chicago, National University of Singapore, Irie Jerk Hut, Kindred Impact LLC, U of C - Dept of Astronomy and Astrophysics, Chicago Fund for Safe and Peaceful Communities, Spring Board Foundation",
       "youthServed": 150,
       "adults": 60,
-      "volHours": 68,
-      "totalValue": 14730.4
+      "volHours": 76,
+      "totalValue": 2492.8
     },
     {
       "id": "P002",
@@ -41,7 +41,7 @@
       "youthServed": 55,
       "adults": 20,
       "volHours": 0,
-      "totalValue": 467.5
+      "totalValue": 0
     },
     {
       "id": "P001",
@@ -53,10 +53,16 @@
       "youthServed": 40,
       "adults": 12,
       "volHours": 0,
-      "totalValue": 3120
+      "totalValue": 0
     }
   ],
   "topVolunteers": [
+    {
+      "name": "Arsenio Powers",
+      "hours": 8,
+      "value": 760,
+      "type": "Corporate"
+    },
     {
       "name": "Aishwarya Balasubramanian",
       "hours": 4,
@@ -77,12 +83,6 @@
     },
     {
       "name": "Euiseong Kim",
-      "hours": 4,
-      "value": 127.2,
-      "type": "Individual"
-    },
-    {
-      "name": "Jerome Kok",
       "hours": 4,
       "value": 127.2,
       "type": "Individual"
