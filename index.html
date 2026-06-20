@@ -199,6 +199,21 @@ body{background:var(--paper);color:var(--ink);font-family:var(--ff);font-size:14
   .stat,.panel,.events-card,.dem-panel{break-inside:avoid}
   @page{margin:14mm;size:Letter}
 }
+
+/* ── Year filter bar ── */
+.filter-bar{background:var(--navy2);padding:0;border-bottom:1px solid rgba(255,255,255,.06)}
+.filter-inner{max-width:var(--max);margin:0 auto;padding:12px 32px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.filter-label{font-family:var(--ffm);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.3);flex-shrink:0}
+.filter-pills{display:flex;gap:6px;flex-wrap:wrap}
+.filter-pill{font-family:var(--ffm);font-size:10px;padding:5px 13px;border-radius:20px;border:1.5px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.45);cursor:pointer;transition:all .18s;letter-spacing:.3px;white-space:nowrap}
+.filter-pill:hover{border-color:rgba(255,255,255,.35);color:rgba(255,255,255,.75)}
+.filter-pill.active{background:var(--gold);border-color:var(--gold);color:var(--navy);font-weight:700}
+.filter-pill.all-time.active{background:var(--teal2);border-color:var(--teal2);color:#fff}
+.filter-context{margin-left:auto;font-family:var(--ffm);font-size:9px;color:rgba(255,255,255,.25);white-space:nowrap}
+/* Historical notice */
+.hist-notice{background:var(--gold-l);border:1px solid var(--gold2);border-radius:8px;padding:10px 14px;margin-bottom:20px;font-size:12px;color:var(--gold);font-family:var(--ffm);display:none}
+.hist-notice.show{display:block}
+
 @media(max-width:680px){
   .hero-inner,.main,.footer{padding-left:20px;padding-right:20px}
   .hero-title{font-size:26px}
@@ -236,8 +251,18 @@ body{background:var(--paper);color:var(--ink);font-family:var(--ff);font-size:14
   </div>
   <div class="gold-rule"></div>
 
+
+  <div class="filter-bar" id="filter-bar">
+    <div class="filter-inner">
+      <div class="filter-label">View</div>
+      <div class="filter-pills" id="filter-pills"></div>
+      <div class="filter-context" id="filter-context"></div>
+    </div>
+  </div>
+
   <div class="main">
 
+    <div class="hist-notice" id="hist-notice"></div>
     <!-- Insights panel -->
     <div class="insights" id="insights-panel" role="region" aria-label="Key insights"></div>
 
@@ -365,6 +390,295 @@ body{background:var(--paper);color:var(--ink);font-family:var(--ff);font-size:14
 </button>
 
 <script>
+
+// ── Filter state ────────────────────────────────────────────────
+var _rawData = null;
+var _isLive  = false;
+var _selectedYears = [];
+
+function getAvailableYears(data) {
+  var years = {};
+  // From historicalImpact
+  (data.historicalImpact || []).forEach(function(h) { if(h.year) years[h.year] = true; });
+  // From recentEvents
+  (data.recentEvents || []).forEach(function(e) {
+    if(e.date) years[new Date(e.date+'T12:00:00').getFullYear()] = true;
+  });
+  // From recentSessions
+  (data.recentSessions || []).forEach(function(s) {
+    if(s.date) years[new Date(s.date+'T12:00:00').getFullYear()] = true;
+  });
+  // Always include fiscal year from settings
+  var fy = parseInt((data.settings||{}).fiscalYear);
+  if(fy) years[fy] = true;
+  return Object.keys(years).map(Number).sort();
+}
+
+function getFiscalYear(data) {
+  return parseInt((data.settings||{}).fiscalYear) || new Date().getFullYear();
+}
+
+// ── Build filter pills ───────────────────────────────────────────
+function renderFilters(data) {
+  var years = getAvailableYears(data);
+  var fy    = getFiscalYear(data);
+  var pills = document.getElementById('filter-pills');
+  if(!pills) return;
+
+  var allHtml = '<button class="filter-pill all-time" data-year="all" aria-pressed="false">All Time</button>';
+  allHtml += years.map(function(y) {
+    var label = y === fy ? y + ' — Current' : String(y);
+    return '<button class="filter-pill" data-year="' + y + '" aria-pressed="false">' + label + '</button>';
+  }).join('');
+  pills.innerHTML = allHtml;
+  pills.querySelectorAll('.filter-pill').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var val = this.dataset.year;
+      selectYear(val === 'all' ? 'all' : parseInt(val));
+    });
+  });
+}
+
+function selectYear(year) {
+  if(year === 'all') {
+    _selectedYears = ['all'];
+  } else {
+    // Remove 'all' if it was set
+    _selectedYears = _selectedYears.filter(function(y){ return y !== 'all'; });
+    var idx = _selectedYears.indexOf(year);
+    if(idx >= 0) {
+      _selectedYears.splice(idx, 1);
+      if(!_selectedYears.length) _selectedYears = ['all']; // revert to all if nothing selected
+    } else {
+      _selectedYears.push(year);
+    }
+  }
+  updatePillStates();
+  applyFilter();
+}
+
+function updatePillStates() {
+  var pills = document.querySelectorAll('.filter-pill');
+  pills.forEach(function(p) {
+    var rawYear = p.dataset.year;
+    var isAll = rawYear === 'all';
+    var y = isAll ? 'all' : parseInt(rawYear);
+    var active = isAll
+      ? (_selectedYears.indexOf('all') >= 0)
+      : (_selectedYears.indexOf(y) >= 0);
+    p.classList.toggle('active', active);
+    p.setAttribute('aria-pressed', active);
+  });
+  // Context label
+  var ctx = document.getElementById('filter-context');
+  if(ctx) {
+    if(_selectedYears.indexOf('all') >= 0) {
+      ctx.textContent = 'Showing all years combined';
+    } else if(_selectedYears.length === 1) {
+      var fy = getFiscalYear(_rawData);
+      ctx.textContent = _selectedYears[0] === fy ? 'Current fiscal year' : 'Historical year — aggregate data only';
+    } else {
+      ctx.textContent = _selectedYears.length + ' years selected';
+    }
+  }
+}
+
+// ── Core filter + recompute ──────────────────────────────────────
+function applyFilter() {
+  if(!_rawData) return;
+  var data    = _rawData;
+  var fy      = getFiscalYear(data);
+  var showAll = _selectedYears.indexOf('all') >= 0;
+  var years   = showAll ? null : _selectedYears; // null = all years
+
+  // Determine if current FY is in scope
+  var hasCurrentYear = showAll || (years && years.indexOf(fy) >= 0);
+  // Determine if any historical years are in scope
+  var histYears = showAll
+    ? (data.historicalImpact||[]).map(function(h){return h.year;})
+    : (years||[]).filter(function(y){ return y !== fy; });
+  var hasHistorical = histYears.length > 0;
+
+  // ── Filter events ──────────────────────────────────────────────
+  var filteredEvents = (data.recentEvents||[]).filter(function(e) {
+    if(!e.date) return showAll;
+    var yr = new Date(e.date+'T12:00:00').getFullYear();
+    return showAll || (years && years.indexOf(yr) >= 0);
+  });
+
+  // ── Filter sessions ────────────────────────────────────────────
+  var filteredSessions = (data.recentSessions||[]).filter(function(s) {
+    if(!s.date) return showAll;
+    var yr = new Date(s.date+'T12:00:00').getFullYear();
+    return showAll || (years && years.indexOf(yr) >= 0);
+  });
+
+  // ── Historical rows in scope ───────────────────────────────────
+  var histRows = (data.historicalImpact||[]).filter(function(h) {
+    return showAll || (years && years.indexOf(h.year) >= 0);
+  });
+
+  // ── Recompute youth ────────────────────────────────────────────
+  // Current year youth: from sessions + events
+  var currentYouth  = filteredSessions.reduce(function(s,r){return s+(r.youth||0);},0);
+  currentYouth     += filteredEvents.filter(function(e){
+    if(!e.date) return false;
+    return new Date(e.date+'T12:00:00').getFullYear() === fy;
+  }).reduce(function(s,e){return s+(e.youthServed||0);},0);
+
+  // Historical youth: from histRows excluding current year
+  var historicalYouth = histRows
+    .filter(function(h){return h.year !== fy;})
+    .reduce(function(s,h){return s+(h.youth||0);},0);
+
+  var totalYouth = (hasCurrentYear ? currentYouth : 0) + historicalYouth;
+
+  // ── Current-year stats (only meaningful when current year in scope) ──
+  var sum = data.summary || {};
+  var displaySum = hasCurrentYear ? sum : {
+    totalVolunteers: null,
+    totalHours: null,
+    totalVolValue: null,
+    totalInKind: null,
+    cashGrants: null,
+    totalProgramValue: null,
+    leverageRatio: null,
+    totalParticipants: null,
+    totalContacts: sum.totalContacts || null
+  };
+
+  // ── Historical aggregate when only hist selected ───────────────
+  var histTotals = {
+    youth:    histRows.filter(function(h){return h.year!==fy;}).reduce(function(s,h){return s+(h.youth||0);},0),
+    adults:   histRows.filter(function(h){return h.year!==fy;}).reduce(function(s,h){return s+(h.adults||0);},0),
+    sessions: histRows.filter(function(h){return h.year!==fy;}).reduce(function(s,h){return s+(h.sessions||0);},0),
+    parks:    Math.max.apply(null, histRows.filter(function(h){return h.year!==fy;}).map(function(h){return h.parks||0;}).concat([0]))
+  };
+
+  // ── Historical notice ──────────────────────────────────────────
+  var notice = document.getElementById('hist-notice');
+  if(notice) {
+    if(!hasCurrentYear && hasHistorical) {
+      notice.className = 'hist-notice show';
+      notice.innerHTML = '📅 Showing historical data for ' +
+        histYears.join(', ') +
+        '. Volunteer hours and program value tracking began in 2026. ' +
+        'Youth and participant counts shown are annual estimates.';
+    } else if(hasCurrentYear && hasHistorical) {
+      notice.className = 'hist-notice show';
+      notice.innerHTML = '📅 Combined view: ' +
+        histYears.join(', ') + ' (estimated totals) + ' + fy + ' (detailed tracking). ' +
+        'Volunteer hours and program value reflect ' + fy + ' only.';
+    } else {
+      notice.className = 'hist-notice';
+      notice.innerHTML = '';
+    }
+  }
+
+  // ── Re-render stat cards ───────────────────────────────────────
+  document.getElementById('s-youth').textContent = totalYouth || '—';
+  document.getElementById('s-youth-sub').textContent =
+    hasHistorical && !hasCurrentYear
+      ? histYears.join(', ') + ' estimated totals'
+      : (displaySum.totalParticipants||0) + ' total participants served';
+
+  if(hasCurrentYear) {
+    document.getElementById('s-vols').textContent = sum.totalVolunteers||'0';
+    document.getElementById('s-vols-sub').textContent = (sum.totalContacts||0)+' total contacts in ecosystem';
+    document.getElementById('s-hours').textContent = hf(sum.totalHours||0);
+    document.getElementById('s-hours-sub').textContent = 'Labor value: '+$f(sum.totalVolValue||0);
+    document.getElementById('s-value').textContent = $k(sum.totalProgramValue||0);
+    document.getElementById('s-value-sub').textContent = 'Vol + In-Kind + Cash grants';
+    document.getElementById('s-leverage').textContent = sum.leverageRatio?sum.leverageRatio.toFixed(1)+'×':'—';
+    document.getElementById('s-leverage-sub').textContent =
+      sum.cashGrants?'per $1 of cash ('+$f(sum.cashGrants)+' received)':'';
+  } else {
+    // Historical only — show youth + sessions + parks
+    document.getElementById('s-vols').textContent = '—';
+    document.getElementById('s-vols-sub').textContent = 'Volunteer tracking from 2026';
+    document.getElementById('s-hours').textContent = histTotals.sessions||'—';
+    document.getElementById('s-hours-sub').textContent = 'Sessions delivered';
+    document.getElementById('s-value').textContent = histTotals.parks||'—';
+    document.getElementById('s-value-sub').textContent = 'Parks reached (peak year)';
+    document.getElementById('s-leverage').textContent = '—';
+    document.getElementById('s-leverage-sub').textContent = 'Program value tracking from 2026';
+  }
+
+  // ── Re-render events table ─────────────────────────────────────
+  // For historical-only views, synthesize rows from histRows
+  var eventsToShow = filteredEvents;
+  if(!hasCurrentYear && hasHistorical) {
+    // Build synthetic "event" rows from historical aggregates
+    eventsToShow = histRows.filter(function(h){return h.year!==fy;}).map(function(h){
+      return {
+        id: 'H'+h.year,
+        name: h.program || 'Programming',
+        date: String(h.year)+'-01-01',
+        area: 'Historical — Annual Summary',
+        location: 'Multiple sites',
+        youthServed: h.youth||0,
+        adults: h.adults||0,
+        volHours: null,
+        totalValue: null,
+        isHistorical: true,
+        notes: h.notes||''
+      };
+    }).sort(function(a,b){return b.date.localeCompare(a.date);});
+  } else if(hasCurrentYear && hasHistorical) {
+    // Add historical rows as summary rows alongside current events
+    var histSummaryRows = histRows.filter(function(h){return h.year!==fy;}).map(function(h){
+      return {
+        id:'H'+h.year,name:h.program||'Programming',date:String(h.year)+'-01-01',
+        area:'Historical Summary',location:'Multiple sites',youthServed:h.youth||0,
+        adults:h.adults||0,volHours:null,totalValue:null,isHistorical:true
+      };
+    });
+    eventsToShow = filteredEvents.concat(histSummaryRows)
+      .sort(function(a,b){return b.date.localeCompare(a.date);});
+  }
+
+  renderEvents(eventsToShow);
+
+  // ── Update narrative ───────────────────────────────────────────
+  var s = data.settings||{};
+  if(!hasCurrentYear && hasHistorical) {
+    document.getElementById('narrative-text').innerHTML =
+      'Historical data for <strong>'+histYears.join(' & ')+'</strong>: STARR served an estimated '+
+      '<strong>'+histTotals.youth+' youth</strong> and '+histTotals.adults+' adults across '+
+      '<strong>'+histTotals.sessions+' sessions</strong> at up to <strong>'+histTotals.parks+' parks</strong>. '+
+      'Detailed volunteer hour tracking began in 2026.';
+    document.getElementById('narrative-period').textContent =
+      histYears.join(' & ')+' · Historical Estimates · '+esc(s.orgName||'');
+  } else if(hasCurrentYear && hasHistorical) {
+    document.getElementById('narrative-text').innerHTML =
+      'Combined view — '+histYears.join(', ')+' (estimated) + 2026 (live). '+
+      'Since 2023 STARR has served an estimated <strong>'+(totalYouth)+' youth</strong> total. '+
+      'In 2026 alone: <strong>'+(sum.totalVolunteers||0)+' volunteers</strong>, '+
+      '<strong>'+hf(sum.totalHours||0)+' hours</strong>, '+
+      '<strong>'+$f(sum.totalProgramValue||0)+' program value</strong>.';
+    document.getElementById('narrative-period').textContent =
+      histYears.join(', ')+' + 2026 · '+esc(s.orgName||'');
+  } else {
+    // Current year only — restore original narrative
+    var yr = sum.youthServed || currentYouth;
+    document.getElementById('narrative-text').innerHTML =
+      'In fiscal year <strong>'+esc(String(s.fiscalYear||'2026'))+'</strong>, STARR mobilized '+
+      '<strong>'+(sum.totalVolunteers||0)+' volunteers</strong> who contributed '+
+      '<strong>'+hf(sum.totalHours||0)+' hours</strong> of service — worth '+
+      '<strong>'+$f(sum.totalVolValue||0)+'</strong> in labor value. '+
+      'Combined with '+$f(sum.totalInKind||0)+' in in-kind contributions and '+
+      $f(sum.cashGrants||0)+' in cash grants, STARR delivered '+
+      '<strong>'+$f(sum.totalProgramValue||0)+' in total program value</strong>, '+
+      'serving <strong>'+(yr)+' youth and community members</strong>.';
+    document.getElementById('narrative-period').textContent =
+      'FY '+String(s.fiscalYear||'2026')+' · '+esc(s.orgName||'');
+  }
+
+  // ── Insights ───────────────────────────────────────────────────
+  renderInsights(data, hasCurrentYear?sum:{}, s, totalYouth);
+}
+
+
 // ── Formatters ─────────────────────────────────────────────
 function $f(n){return'$'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function $k(n){var v=Number(n||0);return v>=1000?'$'+(v/1000).toFixed(1)+'k':'$'+v.toFixed(0);}
@@ -387,8 +701,18 @@ function toggleNote(){
 
 // ── Render ──────────────────────────────────────────────────
 function render(data,isLive){
+  // Store globally for filter use
+  _rawData = data;
+  _isLive  = isLive;
   var s=data.settings||{};
   var sum=data.summary||{};
+
+  // Build year filter pills
+  renderFilters(data);
+  // Default: current fiscal year selected
+  var fy = getFiscalYear(data);
+  _selectedYears = [fy];
+  updatePillStates();
 
   // Status bar
   var sb=document.getElementById('status-bar');
@@ -633,7 +957,16 @@ function sampleData(){
       raceEthnicity:{'Black / African American':4,'Asian / Pacific Islander':1},
       gender:{Female:3,Male:2},ageRange:{'35–44':2,'45–54':2,'25–34':1},
       bipocCount:5,bipocPct:100,demographicResponseRate:6
-    }
+    },
+    recentSessions:[
+      {id:'SES001',date:'2026-06-06',program:'STEAM Community Day',park:'Foster Park',youth:150,adults:60,volHours:76,focus:'Community Event',successStory:'NUS students connected with Auburn Gresham youth in first-ever cultural exchange at Foster Park.'},
+      {id:'SES002',date:'2026-06-24',program:'STEM to the Future',park:'Foster Park',youth:22,adults:4,volHours:6,focus:'Robotics',successStory:'Student built first robot arm — said she wants to be an engineer.'},
+    ],
+    historicalImpact:[
+      {year:2023,program:'Summer STEM Programming',youth:180,adults:40,sessions:16,parks:4,notes:'Inaugural summer park tour.'},
+      {year:2024,program:'Summer STEM Programming',youth:245,adults:55,sessions:20,parks:6,notes:'Expanded to 6 parks.'},
+      {year:2025,program:'STEM Community Day + Summer',youth:310,adults:75,sessions:22,parks:8,notes:'First annual STEAM Community Day.'},
+    ]
   };
 }
 
