@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-17T18:31:03.700Z",
+  "generatedAt": "2026-06-20T23:43:06.429Z",
   "settings": {
     "orgName": "STARR Community Services International, Inc.",
     "fiscalYear": "2026",
@@ -16,7 +16,15 @@
     "totalProgramValue": 10342.4,
     "leverageRatio": 2.1,
     "totalParticipants": 337,
-    "totalContacts": 84
+    "totalContacts": 84,
+    "sessionYouth": 150,
+    "sessionAdults": 60,
+    "sessionCount": 1,
+    "parksReached": 2,
+    "historicalYouth": 885,
+    "historicalAdults": 230,
+    "cumulativeYouth": 885,
+    "cumulativeSessions": 59
   },
   "recentEvents": [
     {
@@ -86,6 +94,130 @@
       "hours": 4,
       "value": 127.2,
       "type": "Individual"
+    }
+  ],
+  "recentSessions": [
+    {
+      "id": "SES005",
+      "date": "2026-07-03",
+      "program": "STEM to the Future",
+      "park": "TBD — Park 2",
+      "youth": 0,
+      "adults": 0,
+      "specialNeeds": 0,
+      "firstTime": 0,
+      "returning": 0,
+      "volHours": 0,
+      "focus": "STEM",
+      "sessionValue": 0,
+      "successStory": "",
+      "notes": ""
+    },
+    {
+      "id": "SES004",
+      "date": "2026-07-01",
+      "program": "STEM to the Future",
+      "park": "TBD — Park 2",
+      "youth": 0,
+      "adults": 0,
+      "specialNeeds": 0,
+      "firstTime": 0,
+      "returning": 0,
+      "volHours": 0,
+      "focus": "Astronomy",
+      "sessionValue": 0,
+      "successStory": "",
+      "notes": "Confirm park with Chicago Park District"
+    },
+    {
+      "id": "SES003",
+      "date": "2026-06-26",
+      "program": "STEM to the Future",
+      "park": "Foster Park",
+      "youth": 0,
+      "adults": 0,
+      "specialNeeds": 0,
+      "firstTime": 0,
+      "returning": 0,
+      "volHours": 0,
+      "focus": "STEM",
+      "sessionValue": 0,
+      "successStory": "",
+      "notes": "Update after session"
+    },
+    {
+      "id": "SES002",
+      "date": "2026-06-24",
+      "program": "STEM to the Future",
+      "park": "Foster Park",
+      "youth": 0,
+      "adults": 0,
+      "specialNeeds": 0,
+      "firstTime": 0,
+      "returning": 0,
+      "volHours": 0,
+      "focus": "Robotics",
+      "sessionValue": 0,
+      "successStory": "",
+      "notes": "First summer session — update counts after"
+    },
+    {
+      "id": "SES001",
+      "date": "2026-06-06",
+      "program": "STEAM Community Day",
+      "park": "Foster Park",
+      "youth": 150,
+      "adults": 60,
+      "specialNeeds": 5,
+      "firstTime": 30,
+      "returning": 0,
+      "volHours": 76,
+      "focus": "Community Event",
+      "sessionValue": 2416.8,
+      "successStory": "NUS students and Auburn Gresham youth connected across cultures. Cultural exchange first of its kind at Foster Park.",
+      "notes": "Annual flagship event — Zeffy tracked registrations"
+    }
+  ],
+  "historicalImpact": [
+    {
+      "year": 2023,
+      "program": "Summer STEM Programming",
+      "youth": 180,
+      "adults": 40,
+      "sessions": 16,
+      "parks": 4,
+      "volunteers": 12,
+      "notes": "Inaugural summer park tour. Auburn Gresham focus. Established Foster Park as primary site."
+    },
+    {
+      "year": 2024,
+      "program": "Summer STEM Programming",
+      "youth": 245,
+      "adults": 55,
+      "sessions": 20,
+      "parks": 6,
+      "volunteers": 22,
+      "notes": "Expanded to 6 parks. Added astronomy and robotics tracks. NUS partnership began."
+    },
+    {
+      "year": 2025,
+      "program": "STEM Community Day + Summer Programming",
+      "youth": 310,
+      "adults": 75,
+      "sessions": 22,
+      "parks": 8,
+      "volunteers": 41,
+      "notes": "First annual STEAM Community Day (June). Summer tour continued. Growing volunteer base."
+    },
+    {
+      "year": 2026,
+      "program": "STEAM Community Day + Summer Park Tour (in progress)",
+      "youth": 150,
+      "adults": 60,
+      "sessions": 1,
+      "parks": 1,
+      "volunteers": 18,
+      "notes": "June 6 flagship complete. Summer tour begins June 24. Update throughout season."
     }
   ],
   "demographics": {
