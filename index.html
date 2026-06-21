@@ -267,6 +267,18 @@ body{background:var(--paper);color:var(--ink);font-family:var(--ff);font-size:14
 .sess-table tbody tr:last-child td{border-bottom:none}
 .sess-table tbody tr:hover{background:var(--paper)}
 
+
+/* ── Summer Season card ── */
+.summer-card{background:var(--white);border:1px solid var(--rule);border-radius:12px;padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:0;flex-wrap:wrap;border-top:3px solid #00C2B8}
+.sc-label{font-family:var(--ffm);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#00C2B8;font-weight:700;margin-bottom:6px}
+.sc-title{font-family:var(--ffd);font-size:13px;font-weight:800;color:var(--navy);margin-bottom:12px}
+.sc-metrics{display:flex;gap:0;flex:1;flex-wrap:wrap}
+.sc-metric{flex:1;min-width:100px;padding:0 16px;border-right:1px solid var(--rule);text-align:center}
+.sc-metric:first-child{padding-left:0}
+.sc-metric:last-child{border-right:none}
+.sc-val{font-family:var(--ffd);font-size:22px;font-weight:800;color:var(--navy);line-height:1;margin-bottom:2px}
+.sc-met-lbl{font-family:var(--ffm);font-size:9px;color:var(--ink4);letter-spacing:.5px;text-transform:uppercase}
+
 @media(max-width:680px){
   .hero-inner,.main,.footer{padding-left:20px;padding-right:20px}
   .hero-title{font-size:26px}
@@ -329,6 +341,19 @@ body{background:var(--paper);color:var(--ink);font-family:var(--ff);font-size:14
     <div class="insights" id="insights-panel" role="region" aria-label="Key insights"></div>
 
     <!-- Stat cards -->
+    <!-- Current Summer Season -->
+    <div class="summer-card" id="summer-card" style="display:none">
+      <div style="margin-right:24px;flex-shrink:0">
+        <div class="sc-label">Live Tracking</div>
+        <div class="sc-title">This Summer</div>
+      </div>
+      <div class="sc-metrics">
+        <div class="sc-metric"><div class="sc-val" id="sc-parks">--</div><div class="sc-met-lbl">Parks Active</div></div>
+        <div class="sc-metric"><div class="sc-val" id="sc-sessions">--</div><div class="sc-met-lbl">Sessions Logged</div></div>
+        <div class="sc-metric"><div class="sc-val" id="sc-youth">--</div><div class="sc-met-lbl">Youth Served</div></div>
+        <div class="sc-metric"><div class="sc-val" id="sc-vols">--</div><div class="sc-met-lbl">Volunteers</div></div>
+      </div>
+    </div>
     <div class="stat-grid" role="region" aria-label="Summary metrics">
       <div class="stat stat-gold">
         <div class="stat-lbl">Active Volunteers</div>
@@ -336,7 +361,7 @@ body{background:var(--paper);color:var(--ink);font-family:var(--ff);font-size:14
         <div class="stat-sub" id="s-vols-sub"></div>
       </div>
       <div class="stat stat-purple">
-        <div class="stat-lbl">Community Served</div>
+        <div class="stat-lbl">Participants Served</div>
         <div class="stat-val" id="s-youth">—</div>
         <div class="stat-sub" id="s-youth-sub"></div>
         <div class="stat-sub" id="s-youth-detail" style="margin-top:4px;font-size:10px;color:var(--ink4)"></div>
@@ -714,7 +739,14 @@ function applyFilter() {
   var elFS=document.getElementById('s-sessions');
   var elFSub=document.getElementById('s-sessions-sub');
   if(elFS) elFS.textContent=filtSC||'—';
-  if(elFSub) elFSub.textContent=filtPR>0?filtPR+' park'+(filtPR===1?'':'s')+' reached':'Starting Jun 24';
+  if(elFSub){
+    if(filtPR>0){
+      elFSub.innerHTML='<span style="color:#00C2B8;font-weight:700;font-size:13px">'+filtPR+'</span>'+
+        ' <span style="color:#9AA5B8;font-size:10px">park'+(filtPR===1?'':'s')+' reached</span>';
+    } else {
+      elFSub.textContent='Starting Jun 24';
+    }
+  }
 
   document.getElementById('s-vols').textContent = sum.totalVolunteers||'0';
     document.getElementById('s-vols-sub').textContent = (sum.totalContacts||0)+' total contacts in ecosystem';
@@ -802,7 +834,8 @@ function applyFilter() {
       'Combined with '+$f(sum.totalInKind||0)+' in in-kind contributions and '+
       $f(sum.cashGrants||0)+' in cash grants, STARR delivered '+
       '<strong>'+$f(sum.totalProgramValue||0)+' in total program value</strong>, '+
-      'serving <strong>'+(yr)+' youth and community members</strong>.';
+      'serving <strong>'+(totalYouth+(filtAdults||0))+' community members</strong> including '+
+      '<strong>'+totalYouth+'</strong> youth and '+(filtAdults||0)+' adults.';
     document.getElementById('narrative-period').textContent =
       'FY '+String(s.fiscalYear||'2026')+' · '+esc(s.orgName||'');
   }
@@ -955,13 +988,37 @@ function render(data,isLive){
   // Demographics
   renderDem(data.demographics||{});
 
+  // Current Summer Season card
+  var summerSessions = (data.recentSessions||[]).filter(function(s){
+    return (s.youth||0)>0 || (s.adults||0)>0;
+  });
+  var summerYouth   = summerSessions.reduce(function(a,s){return a+(s.youth||0);},0);
+  var summerParks   = Object.keys(summerSessions.reduce(function(o,s){if(s.park)o[s.park]=1;return o;},{})).length;
+  var summerVols    = (data.summary||{}).totalVolunteers || 0;
+  var scCard = document.getElementById('summer-card');
+  if(scCard && summerSessions.length > 0){
+    scCard.style.display = 'flex';
+    var scSet = function(id,val){var el=document.getElementById(id);if(el)el.textContent=val;};
+    scSet('sc-parks',    summerParks  || '—');
+    scSet('sc-sessions', summerSessions.length);
+    scSet('sc-youth',    summerYouth  || '—');
+    scSet('sc-vols',     summerVols   || '—');
+  }
+
   // Sessions KPI card
   var sdCount=(data.summary||{}).sessionCount||0;
   var prCount=(data.summary||{}).parksReached||0;
   var elSS=document.getElementById('s-sessions');
   var elSSub=document.getElementById('s-sessions-sub');
   if(elSS) elSS.textContent=sdCount||'—';
-  if(elSSub) elSSub.textContent=prCount>0?prCount+' park'+(prCount===1?'':'s')+' reached':'Starting Jun 24';
+  if(elSSub){
+    if(prCount>0){
+      elSSub.innerHTML='<span style="color:#00C2B8;font-weight:700;font-size:13px">'+prCount+'</span>'+
+        ' <span style="color:#9AA5B8;font-size:10px">park'+(prCount===1?'':'s')+' reached</span>';
+    } else {
+      elSSub.textContent='Starting Jun 24';
+    }
+  }
 
   // Lifetime strip — always cumulative, ignores year filter
   var hi=data.historicalImpact||[];
@@ -1043,7 +1100,9 @@ function renderSessions(sessions){
   if(live.length){
     // Real session data exists — show impact table
     if(title) title.textContent = 'Summer Sessions';
-    if(ct) ct.textContent = live.length+' session'+(live.length===1?'':'s')+' logged';
+    var liveParks=Object.keys(live.reduce(function(o,s){if(s.park)o[s.park]=1;return o;},{})).length;
+    if(ct) ct.innerHTML=live.length+' session'+(live.length===1?'':'s')+' logged'+
+      (liveParks>0?' &nbsp;&middot;&nbsp; <span style="color:#00C2B8;font-weight:700">'+liveParks+' park'+(liveParks===1?'':'s')+'</span>':'');
     renderImpactHighlights(live);
     tb.innerHTML = live.slice(0,12).map(function(s,i){
       var st=getSessionStatus(s);
@@ -1061,7 +1120,10 @@ function renderSessions(sessions){
   } else if(upcoming.length){
     // Sessions scheduled but not yet delivered — show upcoming schedule
     if(title) title.textContent = 'Upcoming Sessions';
-    if(ct) ct.textContent = upcoming.length+' session'+(upcoming.length===1?'':'s')+' scheduled · enter counts after each session';
+    var upParks=Object.keys(upcoming.reduce(function(o,s){if(s.park&&s.park.indexOf('TBD')<0)o[s.park]=1;return o;},{})).length;
+    if(ct) ct.innerHTML=upcoming.length+' session'+(upcoming.length===1?'':'s')+' scheduled'+
+      (upParks>0?' &nbsp;&middot;&nbsp; <span style="color:#00C2B8;font-weight:700">'+upParks+' park'+(upParks===1?'':'s')+' confirmed</span>':''+
+      ' &nbsp;&middot;&nbsp; enter counts after each session');
     tb.innerHTML = upcoming.slice(0,8).map(function(s,i){
       var st=getSessionStatus(s);
       return '<tr style="'+(i%2?'background:var(--paper)':'')+'">'+
