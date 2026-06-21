@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-20T23:43:06.429Z",
+  "generatedAt": "2026-06-21T00:06:47.279Z",
   "settings": {
     "orgName": "STARR Community Services International, Inc.",
     "fiscalYear": "2026",
@@ -17,9 +17,9 @@
     "leverageRatio": 2.1,
     "totalParticipants": 337,
     "totalContacts": 84,
-    "sessionYouth": 150,
-    "sessionAdults": 60,
-    "sessionCount": 1,
+    "sessionYouth": 0,
+    "sessionAdults": 0,
+    "sessionCount": 0,
     "parksReached": 2,
     "historicalYouth": 885,
     "historicalAdults": 230,
@@ -160,22 +160,6 @@
       "sessionValue": 0,
       "successStory": "",
       "notes": "First summer session — update counts after"
-    },
-    {
-      "id": "SES001",
-      "date": "2026-06-06",
-      "program": "STEAM Community Day",
-      "park": "Foster Park",
-      "youth": 150,
-      "adults": 60,
-      "specialNeeds": 5,
-      "firstTime": 30,
-      "returning": 0,
-      "volHours": 76,
-      "focus": "Community Event",
-      "sessionValue": 2416.8,
-      "successStory": "NUS students and Auburn Gresham youth connected across cultures. Cultural exchange first of its kind at Foster Park.",
-      "notes": "Annual flagship event — Zeffy tracked registrations"
     }
   ],
   "historicalImpact": [
