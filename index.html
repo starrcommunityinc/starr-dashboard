@@ -861,6 +861,7 @@ function renderInsights(data,sum,s,youth){
 
   var sessions=data.recentSessions||[];
   var liveSessionCount=sessions.filter(function(s){return s.youth>0;}).length;
+  var upcomingCount=sessions.filter(function(s){return (s.youth||0)===0&&s.date;}).length;
   var sessionYouth=sessions.reduce(function(a,s){return a+(s.youth||0);},0);
   var items=[
     {icon:'🏆',label:'Top Program This Period',
@@ -868,7 +869,9 @@ function renderInsights(data,sum,s,youth){
     {icon:'🏞',label:'Summer Sessions This Season',
      value:liveSessionCount>0
        ?'<em>'+liveSessionCount+'</em> session'+(liveSessionCount===1?'':'s')+' delivered · <em>'+sessionYouth+'</em> youth served'
-       :'No sessions logged yet — starts next week'},
+       :upcomingCount>0
+         ?'<em>'+upcomingCount+'</em> session'+(upcomingCount===1?'':'s')+' scheduled — first: <em>Jun 24</em>. Enter counts after each session.'
+         :'No sessions scheduled yet — add rows to PARTICIPANT_IMPACT_LOG'},
     {icon:'📈',label:'Leverage on Cash Grants',
      value:ratio>0?'Every $1 of grant funding generated <em>'+ratio.toFixed(1)+'×</em> in total program value':'Enter cash grants in SETTINGS to calculate leverage'},
   ];
@@ -886,25 +889,58 @@ function renderInsights(data,sum,s,youth){
 
 // ── Events ──────────────────────────────────────────────────
 function renderSessions(sessions){
-  var sec=document.getElementById('sessions-section');
-  var tb=document.getElementById('sessions-body');
-  var ct=document.getElementById('sessions-count');
-  if(!sec||!tb) return;
-  var live=sessions.filter(function(s){return s.youth>0||s.adults>0;});
-  if(!live.length){sec.style.display='none';return;}
-  sec.style.display='block';
-  if(ct) ct.textContent=live.length+' session'+(live.length===1?'':'s')+' logged';
-  tb.innerHTML=live.slice(0,10).map(function(s,i){
-    return'<tr style="'+(i%2?'background:var(--paper)':'')+'">'+
-      '<td style="font-size:12px;font-weight:600;color:var(--navy);font-family:var(--ffm)">'+(s.focus||s.program||'—')+'</td>'+
-      '<td><div class="evt-date">'+esc(fdate(s.date))+'</div></td>'+
-      '<td style="font-size:12px;color:var(--ink3)">'+esc(s.park||'—')+'</td>'+
-      '<td><div class="evt-num">'+(s.youth||'—')+'</div></td>'+
-      '<td><div class="evt-num">'+(s.adults||'—')+'</div></td>'+
-      '<td><div class="evt-num">'+(s.volHours?hf(s.volHours):'—')+'</div></td>'+
-      '<td style="font-size:11px;color:var(--ink3);font-style:italic;max-width:200px">'+esc((s.successStory||'').substring(0,80)+(s.successStory&&s.successStory.length>80?'…':''))+'</td>'+
-    '</tr>';
-  }).join('');
+  var sec   = document.getElementById('sessions-section');
+  var tb    = document.getElementById('sessions-body');
+  var ct    = document.getElementById('sessions-count');
+  var title = sec ? sec.querySelector('.sec-title') : null;
+  if(!sec || !tb) return;
+
+  // Nothing at all — hide
+  if(!sessions.length){ sec.style.display='none'; return; }
+
+  var live     = sessions.filter(function(s){ return s.youth>0 || s.adults>0; });
+  var upcoming = sessions.filter(function(s){ return (s.youth||0)===0 && (s.adults||0)===0 && s.date; });
+
+  sec.style.display = 'block';
+
+  if(live.length){
+    // Real session data exists — show impact table
+    if(title) title.textContent = 'Summer Sessions';
+    if(ct) ct.textContent = live.length+' session'+(live.length===1?'':'s')+' logged';
+    tb.innerHTML = live.slice(0,10).map(function(s,i){
+      return '<tr style="'+(i%2?'background:var(--paper)':'')+'">'+
+        '<td style="font-size:12px;font-weight:600;color:var(--navy);font-family:var(--ffm)">'+esc(s.focus||s.program||'—')+'</td>'+
+        '<td><div class="evt-date">'+esc(fdate(s.date))+'</div></td>'+
+        '<td style="font-size:12px;color:var(--ink3)">'+esc(s.park||'—')+'</td>'+
+        '<td><div class="evt-num">'+(s.youth||'—')+'</div></td>'+
+        '<td><div class="evt-num">'+(s.adults||'—')+'</div></td>'+
+        '<td><div class="evt-num">'+(s.volHours?hf(s.volHours):'—')+'</div></td>'+
+        '<td style="font-size:11px;color:var(--ink3);font-style:italic;max-width:180px">'+
+          esc((s.successStory||'').substring(0,80)+((s.successStory||'').length>80?'…':''))+
+        '</td>'+
+      '</tr>';
+    }).join('');
+
+  } else if(upcoming.length){
+    // Sessions scheduled but not yet delivered — show upcoming schedule
+    if(title) title.textContent = 'Upcoming Sessions';
+    if(ct) ct.textContent = upcoming.length+' session'+(upcoming.length===1?'':'s')+' scheduled · enter counts after each session';
+    tb.innerHTML = upcoming.slice(0,8).map(function(s,i){
+      var isPast = s.date && new Date(s.date+'T23:59:00') < new Date();
+      return '<tr style="'+(i%2?'background:var(--paper)':'')+';opacity:'+(isPast?'.55':'1')+'">'+
+        '<td style="font-size:12px;font-weight:600;color:var(--navy);font-family:var(--ffm)">'+
+          esc(s.focus||s.program||'—')+
+          (isPast?'<span style="font-size:9px;color:var(--gold);margin-left:8px;font-family:var(--ffm)">NEEDS UPDATE</span>':'')+
+        '</td>'+
+        '<td><div class="evt-date">'+esc(fdate(s.date))+'</div></td>'+
+        '<td style="font-size:12px;color:var(--ink3)">'+esc(s.park||'—')+'</td>'+
+        '<td colspan="3" style="font-size:11px;color:var(--ink4);font-style:italic">'+
+          (isPast?'⚠ Session passed — update youth count in PARTICIPANT_IMPACT_LOG':'📅 Upcoming — update after session')+
+        '</td>'+
+        '<td></td>'+
+      '</tr>';
+    }).join('');
+  }
 }
 
 function renderEvents(events){
