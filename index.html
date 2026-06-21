@@ -545,11 +545,19 @@ function applyFilter() {
   });
 
   // ── Recompute youth ────────────────────────────────────────────
-  // Current year youth: from sessions + events
-  var currentYouth  = filteredSessions.reduce(function(s,r){return s+(r.youth||0);},0);
-  currentYouth     += filteredEvents.filter(function(e){
+  // Current year youth: from sessions + events (no double-count)
+  // If a date appears in both sessions and events, use sessions as authoritative
+  var sessionDates = {};
+  filteredSessions.forEach(function(s){
+    if(s.date && (s.youth||0) > 0) sessionDates[s.date.slice(0,10)] = true;
+  });
+  var currentYouth = filteredSessions.reduce(function(s,r){return s+(r.youth||0);},0);
+  // Add event youth only for events NOT already captured in sessions
+  currentYouth += filteredEvents.filter(function(e){
     if(!e.date) return false;
-    return new Date(e.date+'T12:00:00').getFullYear() === fy;
+    var yr = new Date(e.date+'T12:00:00').getFullYear();
+    var dateKey = e.date.slice(0,10);
+    return yr === fy && !sessionDates[dateKey];
   }).reduce(function(s,e){return s+(e.youthServed||0);},0);
 
   // Historical youth: from histRows excluding current year
@@ -615,8 +623,10 @@ function applyFilter() {
   if(document.getElementById('s-youth-detail')) {
     document.getElementById('s-youth-detail').textContent =
       hasHistorical && !hasCurrentYear
-        ? histYears.join(', ') + ' — estimated totals'
-        : (sum.totalContacts||0)+' contacts in ecosystem';
+        ? 'Historical estimates — ' + histYears.join(', ')
+        : hasCurrentYear && hasHistorical
+          ? 'Combined: est. prior years + ' + fy + ' live data'
+          : fy + ' fiscal year data';
   }
 
   if(hasCurrentYear) {
@@ -790,11 +800,24 @@ function render(data,isLive){
   // Stats
   document.getElementById('s-vols').textContent=sum.totalVolunteers||'0';
   document.getElementById('s-vols-sub').textContent=(sum.totalContacts||0)+' total contacts in ecosystem';
-  var totalAdults=(sum.totalAdults||0)+(data.recentSessions||[]).reduce(function(a,s){return a+(s.adults||0);},0);
-  var totalPartic=youth+(totalAdults||0);
-  document.getElementById('s-youth').textContent=totalPartic||youth||'—';
-  document.getElementById('s-youth-sub').textContent='Youth: '+(youth||0)+' · Adults: '+(totalAdults||0);
-  document.getElementById('s-youth-detail').textContent=(sum.totalContacts||0)+' contacts in ecosystem';
+  // Youth from sessions (deduplicated against events)
+  var sessDates={};
+  (data.recentSessions||[]).forEach(function(s){
+    if(s.date&&(s.youth||0)>0) sessDates[s.date.slice(0,10)]=true;
+  });
+  var sessYouth=(data.recentSessions||[]).reduce(function(a,s){return a+(s.youth||0);},0);
+  var evtYouth=(data.recentEvents||[]).filter(function(e){
+    return e.date&&!sessDates[e.date.slice(0,10)];
+  }).reduce(function(a,e){return a+(e.youthServed||0);},0);
+  var dedupeYouth=sessYouth+evtYouth;
+  var sessAdults=(data.recentSessions||[]).reduce(function(a,s){return a+(s.adults||0);},0);
+  var totalAdults=(sum.sessionAdults||0)+(sessAdults>0?0:0); // use session adults
+  totalAdults=sessAdults||(sum.sessionAdults||0);
+  var totalPartic=dedupeYouth+(totalAdults||0);
+  document.getElementById('s-youth').textContent=totalPartic||dedupeYouth||'—';
+  document.getElementById('s-youth-sub').textContent='Youth: '+(dedupeYouth||0)+' · Adults: '+(totalAdults||0);
+  if(document.getElementById('s-youth-detail'))
+    document.getElementById('s-youth-detail').textContent=(sum.totalContacts||0)+' contacts in ecosystem';
   document.getElementById('s-hours').textContent=hf(sum.totalHours||0);
   document.getElementById('s-hours-sub').textContent='Labor value: '+$f(sum.totalVolValue||0);
   document.getElementById('s-value').textContent=$k(sum.totalProgramValue||0);
@@ -823,6 +846,10 @@ function render(data,isLive){
   document.getElementById('footer-right').innerHTML=
     'Data source: Google Sheets tracker<br>'+
     (genStr?'Updated '+genStr:'');
+
+  // Apply default year filter after everything is rendered
+  // This ensures the 2026-Current view is what users see on load
+  applyFilter();
 }
 
 // ── Insights panel ──────────────────────────────────────────
